@@ -1,4 +1,5 @@
 name: gait_rehab
+version: 1.0.0+1
 description: AI-Based Gait Analysis for Stroke Rehabilitation
 
 environment:
@@ -12,7 +13,8 @@ dependencies:
   camera: ^0.10.5+9
   image_picker: ^1.0.7
   video_player: ^2.8.3
-  google_mlkit_pose_detection: ^0.10.0
+  google_mlkit_pose_detection: ^0.14.1
+  google_mlkit_commons: ^0.11.1
   flutter_tts: ^3.8.5
   fl_chart: ^0.67.0
   flutter_local_notifications: ^17.1.2

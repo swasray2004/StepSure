@@ -11,6 +11,23 @@ class AppColors {
   static const textPrimary = Color(0xFF1A1A2E);
   static const textSecondary = Color(0xFF6B7280);
 
+  // Hero / header gradient — teal to dark teal
+  static const heroStart = Color(0xFF6ECECE);
+  static const heroMid = Color(0xFF3AABAB);
+  static const heroEnd = Color(0xFF1F7A7A);
+
+  // Typography
+  static const textDark = Color(0xFF183232);
+  static const textMid = Color(0xFF3D5A5A);
+  static const textLight = Color(0xFF7A9E9E);
+  static const textHint = Color(0xFFABC8C8);
+
+  // Surface & cards
+  static const white = Color(0xFFFFFFFF);
+  static const cardBorder = Color(0xFFE8F4F4);
+  static const inputBg = Color(0xFFF5FAFA);
+  static const inputBorder = Color(0xFFDCEEEE);
+
   static Color scoreColor(double score) {
     if (score >= 70) return success;
     if (score >= 40) return warning;

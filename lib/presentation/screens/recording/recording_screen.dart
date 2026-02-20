@@ -22,7 +22,8 @@ class RecordingScreen extends StatefulWidget {
 }
 
 class _RecordingScreenState extends State<RecordingScreen> {
-  late CameraController _cameraController;
+  CameraController? _cameraController;
+  String? _cameraError;
   late PoseService _poseService;
   late FeedbackEngine _feedbackEngine;
   late GaitAnalysisService _gaitService;
@@ -46,14 +47,20 @@ class _RecordingScreenState extends State<RecordingScreen> {
 
   Future<void> _initCamera() async {
     final cameras = await availableCameras();
+    if (cameras.isEmpty) {
+      setState(() {
+        _cameraError = 'No cameras found on this device.';
+      });
+      return;
+    }
     _cameraController = CameraController(
       cameras.first,
       ResolutionPreset.medium,
       enableAudio: false,
     );
-    await _cameraController.initialize();
+    await _cameraController!.initialize();
     _inputRotation = _rotationFromSensor(
-      _cameraController.description.sensorOrientation,
+      _cameraController!.description.sensorOrientation,
     );
     if (mounted) setState(() {});
   }
@@ -78,7 +85,7 @@ class _RecordingScreenState extends State<RecordingScreen> {
     });
     _gaitService.startSession();
 
-    _cameraController.startImageStream((CameraImage image) async {
+    _cameraController?.startImageStream((CameraImage image) async {
       if (!_isRecording) return;
 
       final inputImage = _inputImageFromCamera(image);
@@ -136,7 +143,7 @@ class _RecordingScreenState extends State<RecordingScreen> {
   }
 
   Future<void> _stopRecording() async {
-    await _cameraController.stopImageStream();
+    await _cameraController?.stopImageStream();
     setState(() => _isRecording = false);
 
     final metrics = _gaitService.computeSessionMetrics();
@@ -179,7 +186,10 @@ class _RecordingScreenState extends State<RecordingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_cameraController.value.isInitialized) {
+    if (_cameraError != null) {
+      return Scaffold(body: Center(child: Text(_cameraError!)));
+    }
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -188,7 +198,7 @@ class _RecordingScreenState extends State<RecordingScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          CameraPreview(_cameraController),
+          CameraPreview(_cameraController!),
 
           // Skeleton overlay
           if (_currentPose != null)
@@ -266,7 +276,7 @@ class _RecordingScreenState extends State<RecordingScreen> {
 
   @override
   void dispose() {
-    _cameraController.dispose();
+    _cameraController?.dispose();
     _poseService.dispose();
     _feedbackEngine.dispose();
     super.dispose();

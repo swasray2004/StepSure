@@ -9,6 +9,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+
   supabase_flutter: ^2.3.0
   camera: ^0.10.5+9
   image_picker: ^1.0.7

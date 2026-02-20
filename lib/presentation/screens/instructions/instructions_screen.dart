@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:gait_rehab/core/constants/app_colors.dart';
 import '../recording/recording_screen.dart';
 import 'primary_button.dart';
@@ -150,18 +151,39 @@ class _InstructionsScreenState extends State<InstructionsScreen>
 
               const SizedBox(height: 32),
 
-              // Icon illustration
+              // Icon illustration or Lottie animation for steps
               FadeTransition(
                 opacity: _fadeIn,
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: step.iconColor.withOpacity(0.12),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(step.icon, color: step.iconColor, size: 52),
-                ),
+                child: step.title == 'Place Your Phone'
+                    ? SizedBox(
+                        width: 120,
+                        height: 120,
+                        child: Lottie.asset(
+                          'assets/animations/phone.json',
+                          repeat: true,
+                          fit: BoxFit.contain,
+                        ),
+                      )
+                    : step.title == 'Walk Naturally'
+                        ? SizedBox(
+                            width: 120,
+                            height: 120,
+                            child: Lottie.asset(
+                              'assets/animations/walking.json',
+                              repeat: true,
+                              fit: BoxFit.contain,
+                            ),
+                          )
+                        : Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              color: step.iconColor.withOpacity(0.12),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(step.icon,
+                                color: step.iconColor, size: 52),
+                          ),
               ),
 
               const SizedBox(height: 32),

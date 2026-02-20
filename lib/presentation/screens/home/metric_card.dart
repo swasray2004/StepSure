@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gait_rehab/core/constants/app_text.dart';
 
 class MetricCard extends StatelessWidget {
   final String label;

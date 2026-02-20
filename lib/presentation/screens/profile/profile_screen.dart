@@ -127,9 +127,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 // ── Header ──
                 SliverToBoxAdapter(
                   child: Container(
-                    decoration: const BoxDecoration(
-                      // gradient: AppColors.primaryGradient, // Remove or replace with a valid gradient if needed
-                      borderRadius: BorderRadius.only(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.primary, AppColors.secondary],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(32),
                         bottomRight: Radius.circular(32),
                       ),
@@ -137,60 +141,88 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     padding: const EdgeInsets.fromLTRB(24, 60, 24, 32),
                     child: Column(
                       children: [
-                        // Avatar
+                        // Glass-like Avatar
                         Container(
-                          width: 80,
-                          height: 80,
+                          width: 90,
+                          height: 90,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.25),
+                            color: Colors.white.withOpacity(0.18),
                             shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.08),
+                                blurRadius: 16,
+                                offset: Offset(0, 6),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.35),
+                              width: 1.2,
+                            ),
                           ),
                           child: Center(
                             child: Text(
                               name.isNotEmpty ? name[0].toUpperCase() : 'P',
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 34,
-                                fontWeight: FontWeight.w800,
+                                fontSize: 38,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -1.2,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 14),
-                        Text(name,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 16),
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            fontFamily: 'Nunito',
+                            letterSpacing: -0.8,
+                          ),
+                        ),
                         const SizedBox(height: 4),
-                        Text(email,
-                            style: const TextStyle(
-                                color: Colors.white70, fontSize: 13)),
-
-                        const SizedBox(height: 24),
-
+                        Text(
+                          email,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(height: 28),
                         // Stats row
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _StatPill(
-                              label: 'Sessions',
-                              value: '${_stats?['sessions'] ?? 0}',
-                            ),
-                            Container(
-                                width: 1, height: 36, color: Colors.white30),
-                            _StatPill(
-                              label: 'Avg Score',
-                              value:
-                                  '${(_stats?['avg_score'] as double? ?? 0).toStringAsFixed(1)}',
-                            ),
-                            Container(
-                                width: 1, height: 36, color: Colors.white30),
-                            _StatPill(
-                              label: 'Minutes',
-                              value: '${_stats?['total_minutes'] ?? 0}',
-                            ),
-                          ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 18),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.10),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _StatPill(
+                                label: 'Sessions',
+                                value: '${_stats?['sessions'] ?? 0}',
+                              ),
+                              Container(
+                                  width: 1, height: 36, color: Colors.white30),
+                              _StatPill(
+                                label: 'Avg Score',
+                                value:
+                                    '${(_stats?['avg_score'] as double? ?? 0).toStringAsFixed(1)}',
+                              ),
+                              Container(
+                                  width: 1, height: 36, color: Colors.white30),
+                              _StatPill(
+                                label: 'Minutes',
+                                value: '${_stats?['total_minutes'] ?? 0}',
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -396,29 +428,38 @@ class _Card extends StatelessWidget {
 
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.cardBg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.danger.withOpacity(0.15)),
+        color: AppColors.cardBg.withOpacity(0.98),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.06),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: AppColors.danger.withOpacity(0.10)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: AppColors.primary, size: 18),
-              const SizedBox(width: 8),
+              Icon(icon, color: AppColors.primary, size: 20),
+              const SizedBox(width: 10),
               Text(title,
                   style: const TextStyle(
                       fontWeight: FontWeight.w800,
-                      fontSize: 15,
+                      fontSize: 16,
+                      fontFamily: 'Nunito',
                       color: AppColors.textPrimary)),
             ],
           ),
           const SizedBox(height: 14),
-          Divider(color: AppColors.danger.withOpacity(0.15), height: 1),
-          const SizedBox(height: 8),
+          Divider(color: AppColors.danger.withOpacity(0.10), height: 1),
+          const SizedBox(height: 10),
           ...children,
         ],
       ),

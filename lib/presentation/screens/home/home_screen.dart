@@ -1,5 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:gait_rehab/core/constants/app_colors.dart';
+import 'package:gait_rehab/core/constants/app_text.dart';
+import 'package:gait_rehab/core/widgets/widgets.dart';
+import 'package:lottie/lottie.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../instructions/instructions_screen.dart';
 import '../progress/progress_screen.dart';
@@ -185,8 +190,8 @@ class _HomeTabState extends State<_HomeTab> {
   @override
   Widget build(BuildContext context) {
     final name = _profile?['full_name']?.toString().split(' ').first ?? 'There';
-    final lastScore = _toDouble(_lastSession?['recovery_score']);
-    final lastRisk = _lastSession?['fall_risk'] as String?;
+    final score = _toDouble(_lastSession?['recovery_score']);
+    final risk = _lastSession?['fall_risk'] as String?;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -194,137 +199,230 @@ class _HomeTabState extends State<_HomeTab> {
           ? const Center(child: CircularProgressIndicator())
           : CustomScrollView(
               slivers: [
-                // ── Hero Header ──
+                // Top bar with welcome and notification icon
                 SliverToBoxAdapter(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(32),
-                        bottomRight: Radius.circular(32),
-                      ),
-                    ),
-                    padding: const EdgeInsets.fromLTRB(24, 60, 24, 32),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Hello, $name 👋',
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                const Text(
-                                  'Ready to walk?',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: const Icon(Icons.notifications_outlined,
-                                  color: Colors.white),
-                            ),
+                  child: SafeArea(
+                    bottom: false,
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.fromLTRB(20, 30, 20, 16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primary.withOpacity(0.10),
+                            Colors.white.withOpacity(0.0)
                           ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        const SizedBox(height: 24),
-                        // Last session pill
-                        if (lastScore != null)
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                  color: Colors.white.withOpacity(0.25)),
-                            ),
-                            child: Row(
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text('Last Session Score',
-                                        style: TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500)),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${lastScore.toStringAsFixed(1)}/100',
-                                      style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.w800,
-                                          letterSpacing: -0.5),
-                                    ),
-                                  ],
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.04),
+                            blurRadius: 16,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Welcome back!',
+                                style: AppText.h1.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.textDark,
+                                  fontSize: 30,
+                                  letterSpacing: -1.2,
                                 ),
-                                const Spacer(),
-                                if (lastRisk != null)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(20),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                "Let's get moving, $name!",
+                                style: AppText.body.copyWith(
+                                  color: AppColors.textMid,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Enhanced glassmorphic notification icon with badge
+                          Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              ClipOval(
+                                child: Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.white.withOpacity(0.22),
+                                        Colors.white.withOpacity(0.12),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
                                     ),
-                                    child: Text(
-                                      '${lastRisk[0].toUpperCase()}${lastRisk.substring(1)} Risk',
-                                      style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: Colors.lightBlue.withOpacity(0.6),
+                                      width: 1.2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.08),
+                                        blurRadius: 12,
+                                        offset: Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: BackdropFilter(
+                                    filter: ImageFilter.blur(
+                                        sigmaX: 10, sigmaY: 10),
+                                    child: IconButton(
+                                      icon: const Icon(
+                                        Icons.notifications_none_outlined,
+                                        size: 28,
+                                        color: Colors.lightBlue,
+                                      ),
+                                      onPressed: () {},
+                                      splashRadius: 24,
+                                      tooltip: 'Notifications',
                                     ),
                                   ),
-                              ],
-                            ),
-                          )
-                        else
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                  color: Colors.white.withOpacity(0.25)),
-                            ),
-                            child: const Row(
-                              children: [
-                                Icon(Icons.info_outline,
-                                    color: Colors.white70, size: 18),
-                                SizedBox(width: 10),
-                                Text(
-                                  'No sessions yet — start your first walk!',
-                                  style: TextStyle(
-                                      color: Colors.white70, fontSize: 13),
                                 ),
-                              ],
-                            ),
+                              ),
+                              // Notification badge
+                              Positioned(
+                                right: -2,
+                                top: -2,
+                                child: Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: Colors.redAccent,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-
+                // ── Hero appointment-style card ───────────────
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.10),
+                        borderRadius: BorderRadius.circular(28),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.08),
+                            blurRadius: 24,
+                            offset: Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: HeroCard(
+                        padding: EdgeInsets.zero,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Padding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(38, 22, 140, 22),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 6),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Ready for your\ngait session?',
+                                    style: AppText.heroTitle.copyWith(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: -0.8,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  // Session info pills
+                                  if (score != null) ...[
+                                    _InfoPill(
+                                      icon: Icons.timeline_rounded,
+                                      text:
+                                          'Last score: ${score.toStringAsFixed(1)}/100',
+                                    ),
+                                    const SizedBox(height: 8),
+                                  ],
+                                  if (risk != null)
+                                    _InfoPill(
+                                      icon: Icons.shield_outlined,
+                                      text:
+                                          'Fall risk: ${risk[0].toUpperCase()}${risk.substring(1)}',
+                                    )
+                                  else
+                                    _InfoPill(
+                                      icon: Icons.play_circle_outline_rounded,
+                                      text: 'Start your first session',
+                                    ),
+                                ],
+                              ),
+                            ),
+                            // Illustration placeholder: walking.json animation
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              bottom: 0,
+                              child: ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  topRight: Radius.circular(24),
+                                  bottomRight: Radius.circular(24),
+                                ),
+                                child: Container(
+                                  width: 130,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        AppColors.heroEnd.withOpacity(0),
+                                        AppColors.heroEnd,
+                                      ],
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 90,
+                                      height: 90,
+                                      child: Lottie.asset(
+                                        'assets/animations/walking2.json',
+                                        repeat: true,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
                 // ── Main Actions ──
                 SliverToBoxAdapter(
                   child: Padding(
@@ -343,7 +441,6 @@ class _HomeTabState extends State<_HomeTab> {
                           ),
                         ),
                         const SizedBox(height: 14),
-
                         // Live Recording card
                         _ActionCard(
                           title: 'Live Recording',
@@ -359,9 +456,7 @@ class _HomeTabState extends State<_HomeTab> {
                                 builder: (_) => const InstructionsScreen()),
                           ),
                         ),
-
                         const SizedBox(height: 14),
-
                         // Upload Video card
                         _ActionCard(
                           title: 'Upload Video',
@@ -377,27 +472,80 @@ class _HomeTabState extends State<_HomeTab> {
                                 builder: (_) => const UploadScreen()),
                           ),
                         ),
-
                         const SizedBox(height: 28),
-
                         // ── Quick Stats ──
-                        const Text(
-                          'Your Stats',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
-                            letterSpacing: -0.3,
+                        // Glassmorphic Your Stats card with animation
+                        Container(
+                          padding: const EdgeInsets.all(22),
+                          margin: const EdgeInsets.only(top: 8, bottom: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.13),
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.09),
+                                blurRadius: 18,
+                                offset: Offset(0, 6),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.18),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.bar_chart_rounded,
+                                      color: Color(0xFF3AABAB), size: 22),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Your Stats',
+                                    style: AppText.h2.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.textPrimary,
+                                      fontSize: 18,
+                                      letterSpacing: -0.3,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 18),
+                              AnimatedStatsBar(
+                                label: 'Cadence',
+                                value: _toDouble(_lastSession?['cadence']),
+                                max: 200,
+                                unit: 'spm',
+                                icon: Icons.speed_rounded,
+                                color: AppColors.primary,
+                              ),
+                              const SizedBox(height: 16),
+                              AnimatedStatsBar(
+                                label: 'Symmetry',
+                                value: _toDouble(_lastSession?['symmetry']),
+                                max: 100,
+                                unit: '%',
+                                icon: Icons.balance_rounded,
+                                color: AppColors.secondary,
+                              ),
+                              const SizedBox(height: 16),
+                              AnimatedStatsBar(
+                                label: 'Stride',
+                                value:
+                                    _toDouble(_lastSession?['stride_length']),
+                                max: 2.0,
+                                unit: 'm',
+                                icon: Icons.straighten_rounded,
+                                color: AppColors.primary,
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 14),
-                        _QuickStats(lastSession: _lastSession),
-
                         const SizedBox(height: 28),
-
                         // ── Tips ──
                         const _TipsCard(),
-
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -477,56 +625,182 @@ class _ActionCard extends StatelessWidget {
   }
 }
 
-class _QuickStats extends StatelessWidget {
-  final Map<String, dynamic>? lastSession;
+// Animated stats bar widget
+class AnimatedStatsBar extends StatefulWidget {
+  final String label;
+  final double? value;
+  final double max;
+  final String unit;
+  final IconData icon;
+  final Color color;
 
-  const _QuickStats({this.lastSession});
+  const AnimatedStatsBar({
+    required this.label,
+    required this.value,
+    required this.max,
+    required this.unit,
+    required this.icon,
+    required this.color,
+    Key? key,
+  }) : super(key: key);
 
-  double? _toDouble(dynamic value) {
-    if (value == null) return null;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    return null;
+  @override
+  State<AnimatedStatsBar> createState() => _AnimatedStatsBarState();
+}
+
+class _AnimatedStatsBarState extends State<AnimatedStatsBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _animation = Tween<double>(
+      begin: 0,
+      end: (widget.value ?? 0) / widget.max,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    ));
+    _controller.forward();
+  }
+
+  @override
+  void didUpdateWidget(covariant AnimatedStatsBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      _animation = Tween<double>(
+        begin: 0,
+        end: (widget.value ?? 0) / widget.max,
+      ).animate(CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeOutCubic,
+      ));
+      _controller.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final cadence =
-        _toDouble(lastSession?['cadence'])?.toStringAsFixed(0) ?? '--';
-    final symmetry =
-        _toDouble(lastSession?['symmetry'])?.toStringAsFixed(0) ?? '--';
-    final stride =
-        _toDouble(lastSession?['stride_length'])?.toStringAsFixed(2) ?? '--';
-
-    return Row(
+    final displayValue = widget.value == null
+        ? '--'
+        : widget.label == 'Stride'
+            ? widget.value!.toStringAsFixed(2)
+            : widget.value!.toStringAsFixed(0);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-            child: MetricCard(
-          label: 'Cadence',
-          value: cadence,
-          unit: 'spm',
-          icon: Icons.speed_rounded,
-          color: AppColors.primary,
-        )),
-        const SizedBox(width: 12),
-        Expanded(
-            child: MetricCard(
-          label: 'Symmetry',
-          value: symmetry,
-          unit: '%',
-          icon: Icons.balance_rounded,
-          color: AppColors.secondary,
-        )),
-        const SizedBox(width: 12),
-        Expanded(
-            child: MetricCard(
-          label: 'Stride',
-          value: stride,
-          unit: 'm',
-          icon: Icons.straighten_rounded,
-          color: AppColors.primary,
-        )),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: widget.color.withOpacity(0.13),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(widget.icon, color: widget.color, size: 20),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              widget.label,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '$displayValue ${widget.unit}',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+                color: widget.color,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        AnimatedBuilder(
+          animation: _animation,
+          builder: (context, child) {
+            return Stack(
+              children: [
+                Container(
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.18),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                FractionallySizedBox(
+                  widthFactor: _animation.value.clamp(0, 1),
+                  child: Container(
+                    height: 12,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          widget.color.withOpacity(0.7),
+                          widget.color.withOpacity(0.35),
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ],
+    );
+  }
+}
+
+class _InfoPill extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _InfoPill({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.heroEnd.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white70, size: 14),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(
+              fontFamily: AppText.fontFamily,
+              fontSize: 12,
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

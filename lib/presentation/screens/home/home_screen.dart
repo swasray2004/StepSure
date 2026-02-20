@@ -147,6 +147,13 @@ class _HomeTabState extends State<_HomeTab> {
   Map<String, dynamic>? _lastSession;
   bool _loading = true;
 
+  double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -178,7 +185,7 @@ class _HomeTabState extends State<_HomeTab> {
   @override
   Widget build(BuildContext context) {
     final name = _profile?['full_name']?.toString().split(' ').first ?? 'There';
-    final lastScore = _lastSession?['recovery_score'] as double?;
+    final lastScore = _toDouble(_lastSession?['recovery_score']);
     final lastRisk = _lastSession?['fall_risk'] as String?;
 
     return Scaffold(
@@ -475,14 +482,21 @@ class _QuickStats extends StatelessWidget {
 
   const _QuickStats({this.lastSession});
 
+  double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final cadence =
-        (lastSession?['cadence'] as double?)?.toStringAsFixed(0) ?? '--';
+        _toDouble(lastSession?['cadence'])?.toStringAsFixed(0) ?? '--';
     final symmetry =
-        (lastSession?['symmetry'] as double?)?.toStringAsFixed(0) ?? '--';
+        _toDouble(lastSession?['symmetry'])?.toStringAsFixed(0) ?? '--';
     final stride =
-        (lastSession?['stride_length'] as double?)?.toStringAsFixed(2) ?? '--';
+        _toDouble(lastSession?['stride_length'])?.toStringAsFixed(2) ?? '--';
 
     return Row(
       children: [

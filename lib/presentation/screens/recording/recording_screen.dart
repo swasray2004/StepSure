@@ -1,6 +1,8 @@
+import 'dart:io';
 import '../results/results_screen.dart';
 import 'package:gait_rehab/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 import '../../../data/pose_service.dart';
@@ -28,6 +30,7 @@ class _RecordingScreenState extends State<RecordingScreen> {
 
   Pose? _currentPose;
   Size _imageSize = Size.zero;
+  InputImageRotation _inputRotation = InputImageRotation.rotation0deg;
   bool _isRecording = false;
   int _sessionSeconds = 0;
   late DateTime _sessionStart;
@@ -49,7 +52,23 @@ class _RecordingScreenState extends State<RecordingScreen> {
       enableAudio: false,
     );
     await _cameraController.initialize();
+    _inputRotation = _rotationFromSensor(
+      _cameraController.description.sensorOrientation,
+    );
     if (mounted) setState(() {});
+  }
+
+  InputImageRotation _rotationFromSensor(int sensorOrientation) {
+    switch (sensorOrientation) {
+      case 90:
+        return InputImageRotation.rotation90deg;
+      case 180:
+        return InputImageRotation.rotation180deg;
+      case 270:
+        return InputImageRotation.rotation270deg;
+      default:
+        return InputImageRotation.rotation0deg;
+    }
   }
 
   void _startRecording() {
@@ -82,18 +101,35 @@ class _RecordingScreenState extends State<RecordingScreen> {
 
   InputImage? _inputImageFromCamera(CameraImage image) {
     try {
-      final rotation = InputImageRotation.rotation90deg;
-      final format = InputImageFormat.nv21;
-
-      return InputImage.fromBytes(
-        bytes: image.planes[0].bytes,
-        metadata: InputImageMetadata(
-          size: Size(image.width.toDouble(), image.height.toDouble()),
-          rotation: rotation,
-          format: format,
-          bytesPerRow: image.planes[0].bytesPerRow,
-        ),
-      );
+      if (Platform.isIOS) {
+        // iOS delivers a single BGRA8888 plane
+        return InputImage.fromBytes(
+          bytes: image.planes[0].bytes,
+          metadata: InputImageMetadata(
+            size: Size(image.width.toDouble(), image.height.toDouble()),
+            rotation: _inputRotation,
+            format: InputImageFormat.bgra8888,
+            bytesPerRow: image.planes[0].bytesPerRow,
+          ),
+        );
+      } else {
+        // Android: YUV_420_888 — concatenate all planes so ML Kit gets a
+        // complete buffer (Y luma + U/V chroma). ML Kit tolerates the
+        // I420-style plane ordering as NV21.
+        final WriteBuffer buffer = WriteBuffer();
+        for (final plane in image.planes) {
+          buffer.putUint8List(plane.bytes);
+        }
+        return InputImage.fromBytes(
+          bytes: buffer.done().buffer.asUint8List(),
+          metadata: InputImageMetadata(
+            size: Size(image.width.toDouble(), image.height.toDouble()),
+            rotation: _inputRotation,
+            format: InputImageFormat.nv21,
+            bytesPerRow: image.planes[0].bytesPerRow,
+          ),
+        );
+      }
     } catch (_) {
       return null;
     }
@@ -160,6 +196,7 @@ class _RecordingScreenState extends State<RecordingScreen> {
               painter: SkeletonPainter(
                 pose: _currentPose!,
                 imageSize: _imageSize,
+                rotation: _inputRotation,
               ),
             ),
 

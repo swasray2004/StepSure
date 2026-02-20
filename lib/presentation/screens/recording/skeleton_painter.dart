@@ -5,11 +5,13 @@ class SkeletonPainter extends CustomPainter {
   final Pose pose;
   final Size imageSize;
   final bool isFrontCamera;
+  final InputImageRotation rotation;
 
   SkeletonPainter({
     required this.pose,
     required this.imageSize,
     this.isFrontCamera = false,
+    this.rotation = InputImageRotation.rotation0deg,
   });
 
   final _bonePaint = Paint()
@@ -42,14 +44,41 @@ class SkeletonPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final scaleX = size.width / imageSize.width;
-    final scaleY = size.height / imageSize.height;
+    // ML Kit returns landmark coordinates in the raw (unrotated) camera buffer
+    // space. We remap them to screen space accounting for sensor rotation so
+    // the skeleton overlay aligns with the body in the CameraPreview.
+    Offset toOffset(PoseLandmark lm) {
+      final imgW = imageSize.width;
+      final imgH = imageSize.height;
+      final screenW = size.width;
+      final screenH = size.height;
+      double sx, sy;
 
-    Offset _toOffset(PoseLandmark lm) {
-      double x = lm.x * scaleX;
-      double y = lm.y * scaleY;
-      if (isFrontCamera) x = size.width - x;
-      return Offset(x, y);
+      switch (rotation) {
+        case InputImageRotation.rotation90deg:
+          // Buffer is landscape. The buffer's x-axis maps to screen y (inverted)
+          // and buffer's y-axis maps to screen x.
+          sx = isFrontCamera
+              ? (1.0 - lm.y / imgH) * screenW
+              : (lm.y / imgH) * screenW;
+          sy = (1.0 - lm.x / imgW) * screenH;
+        case InputImageRotation.rotation270deg:
+          sx = isFrontCamera
+              ? (lm.y / imgH) * screenW
+              : (1.0 - lm.y / imgH) * screenW;
+          sy = (lm.x / imgW) * screenH;
+        case InputImageRotation.rotation180deg:
+          sx = isFrontCamera
+              ? (lm.x / imgW) * screenW
+              : (1.0 - lm.x / imgW) * screenW;
+          sy = (1.0 - lm.y / imgH) * screenH;
+        default: // rotation0deg
+          sx = (lm.x / imgW) * screenW;
+          sy = (lm.y / imgH) * screenH;
+          if (isFrontCamera) sx = screenW - sx;
+      }
+
+      return Offset(sx, sy);
     }
 
     // Draw bones
@@ -57,18 +86,19 @@ class SkeletonPainter extends CustomPainter {
       final a = pose.landmarks[conn[0]];
       final b = pose.landmarks[conn[1]];
       if (a != null && b != null && a.likelihood > 0.5 && b.likelihood > 0.5) {
-        canvas.drawLine(_toOffset(a), _toOffset(b), _bonePaint);
+        canvas.drawLine(toOffset(a), toOffset(b), _bonePaint);
       }
     }
 
     // Draw joints
     for (final lm in pose.landmarks.values) {
       if (lm.likelihood > 0.5) {
-        canvas.drawCircle(_toOffset(lm), 6, _jointPaint);
+        canvas.drawCircle(toOffset(lm), 6, _jointPaint);
       }
     }
   }
 
   @override
-  bool shouldRepaint(SkeletonPainter old) => true;
+  bool shouldRepaint(SkeletonPainter old) =>
+      old.rotation != rotation || old.isFrontCamera != isFrontCamera || true;
 }

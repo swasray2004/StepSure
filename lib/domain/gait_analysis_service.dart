@@ -14,6 +14,8 @@ class GaitAnalysisService {
   DateTime? _lastStride;
   int _stepCount = 0;
   DateTime? _sessionStart;
+  bool _leftExtended = false;
+  bool _rightExtended = false;
 
   GaitAnalysisService({required this.feedbackEngine});
 
@@ -25,6 +27,8 @@ class GaitAnalysisService {
     _stepCount = 0;
     _sessionStart = DateTime.now();
     _lastStride = null;
+    _leftExtended = false;
+    _rightExtended = false;
   }
 
   void processFrame(Pose pose) {
@@ -40,9 +44,20 @@ class GaitAnalysisService {
     final sym = AngleCalculator.computeSymmetry(lk, rk);
     _symmetryScores.add(sym);
 
-    // Simple step detection: knee extension event
-    if (lk > 160 || rk > 160) {
+    // Step detection: rising-edge state machine with hysteresis
+    // Only count a step on the transition from flexed → extended (prevents
+    // counting the same step on every frame while the knee stays extended).
+    if (!_leftExtended && lk > 160) {
+      _leftExtended = true;
       _recordStep();
+    } else if (lk < 140) {
+      _leftExtended = false; // re-arm once knee bends back past 140°
+    }
+    if (!_rightExtended && rk > 160) {
+      _rightExtended = true;
+      _recordStep();
+    } else if (rk < 140) {
+      _rightExtended = false;
     }
 
     final currentCadence = _computeCurrentCadence();

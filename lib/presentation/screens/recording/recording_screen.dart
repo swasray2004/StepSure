@@ -1,4 +1,5 @@
 import '../results/results_screen.dart';
+import 'package:gait_rehab/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
@@ -133,7 +134,7 @@ class _RecordingScreenState extends State<RecordingScreen> {
           context,
           MaterialPageRoute(
             builder: (_) => ResultsScreen(
-              session: session.copyWith(id: sessionId),
+              session: session.copyWith(id: sessionId).toMap(),
               report: report,
             ),
           ));

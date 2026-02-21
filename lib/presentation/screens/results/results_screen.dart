@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:gait_rehab/core/constants/app_colors.dart';
+import 'package:gait_rehab/domain/pdf_generator.dart';
+import 'package:gait_rehab/domain/models/session_model.dart';
 import '../../core/widgets/section_header.dart';
 import '../../core/widgets/score_ring.dart';
 import '../../core/widgets/risk_badge.dart';
 import '../home/metric_card.dart';
 import '../instructions/primary_button.dart';
-import '../../../domain/pdf_generator.dart';
 
 class ResultsScreen extends StatefulWidget {
   final Map<String, dynamic> session;
@@ -46,12 +47,11 @@ class _ResultsScreenState extends State<ResultsScreen>
     if (_exportingPdf) return;
     setState(() => _exportingPdf = true);
     try {
-      final bytes = await PdfGenerator.generateSessionReport(
-        widget.session,
-        widget.report,
+      final sessionModel = SessionModel.fromMap(widget.session);
+      await PdfExporter.exportReport(
+        session: sessionModel,
+        report: widget.report,
       );
-      final sessionId = widget.session['id'] as String? ?? 'session';
-      await PdfGenerator.sharePdf(bytes, 'StepSure_$sessionId.pdf');
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -374,9 +374,7 @@ class _ResultsScreenState extends State<ResultsScreen>
                       label: _exportingPdf
                           ? 'Generating PDF...'
                           : 'Export PDF Report',
-                      icon: _exportingPdf
-                          ? null
-                          : Icons.picture_as_pdf_rounded,
+                      icon: _exportingPdf ? null : Icons.picture_as_pdf_rounded,
                       color: AppColors.primary,
                       onTap: _exportingPdf ? () {} : _exportPdf,
                     ),

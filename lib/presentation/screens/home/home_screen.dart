@@ -298,47 +298,7 @@ class _HomeTabState extends State<_HomeTab> {
                                 ),
                               ),
                               // Notification badge
-                              GestureDetector(
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const NotificationsScreen(),
-                                  ),
-                                ),
-                                child: Stack(
-                                  alignment: Alignment.topRight,
-                                  children: [
-                                    Icon(
-                                      Icons.notifications_none_outlined,
-                                      size: 28,
-                                      color: AppColors.textDark,
-                                    ),
-                                    // TODO: Replace with real unread count
-                                    Positioned(
-                                      right: 0,
-                                      top: 0,
-                                      child: Container(
-                                        width: 12,
-                                        height: 12,
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primary,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            '1', // Example unread count
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 8,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                              NotificationBadge(),
                             ],
                           ),
                         ],
@@ -826,6 +786,33 @@ class _InfoPill extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class NotificationBadge extends StatelessWidget {
+  const NotificationBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: -5,
+      right: -5,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: Colors.red,
+          shape: BoxShape.circle,
+        ),
+        child: const Text(
+          '1',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }

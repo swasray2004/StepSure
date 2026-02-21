@@ -101,7 +101,8 @@ class _UploadScreenState extends State<UploadScreen> {
       if (videoUrl != null) {
         await _supabase.updateSessionVideoUrl(sessionId, videoUrl);
       }
-      final sessionWithVideo = session.copyWith(id: sessionId, videoUrl: videoUrl);
+      final sessionWithVideo =
+          session.copyWith(id: sessionId, videoUrl: videoUrl);
 
       final prev = await _supabase.getLastSession();
       final report = ReportGenerator.generate(
@@ -273,14 +274,22 @@ class _UploadScreenState extends State<UploadScreen> {
                           fontSize: 15)),
                   const SizedBox(height: 12),
                   ...[
-                    (Icons.directions_walk_rounded,
-                        'Full body visible throughout the video'),
-                    (Icons.wb_sunny_outlined,
-                        'Good lighting, avoid dark/blurry videos'),
-                    (Icons.phone_android_rounded,
-                        'Recorded from side view, not front-on'),
-                    (Icons.straighten_rounded,
-                        'At least 10 seconds of walking footage'),
+                    (
+                      Icons.directions_walk_rounded,
+                      'Full body visible throughout the video'
+                    ),
+                    (
+                      Icons.wb_sunny_outlined,
+                      'Good lighting, avoid dark/blurry videos'
+                    ),
+                    (
+                      Icons.phone_android_rounded,
+                      'Side view or front-on view supported'
+                    ),
+                    (
+                      Icons.straighten_rounded,
+                      'At least 10 seconds of walking footage'
+                    ),
                   ].map(
                     (item) => Padding(
                       padding: const EdgeInsets.only(bottom: 10),
@@ -312,10 +321,10 @@ class _UploadScreenState extends State<UploadScreen> {
                   PrimaryButton(
                     label: _analyzing
                         ? 'Analysing... ${(_progress * 100).toStringAsFixed(0)}%'
-                        : (_videoFile != null ? 'Analyse Video' : 'Select Video'),
-                    icon: _analyzing
-                        ? null
-                        : Icons.play_circle_outline_rounded,
+                        : (_videoFile != null
+                            ? 'Analyse Video'
+                            : 'Select Video'),
+                    icon: _analyzing ? null : Icons.play_circle_outline_rounded,
                     onTap: _analyzing
                         ? () {}
                         : (_videoFile != null ? _analyzeVideo : _pickVideo),
@@ -354,8 +363,7 @@ class _UploadScreenState extends State<UploadScreen> {
         const SizedBox(height: 6),
         Text(
           '${(_progress * 100).toStringAsFixed(0)}% of frames processed',
-          style: const TextStyle(
-              fontSize: 12, color: AppColors.textSecondary),
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
         ),
       ],
     );
@@ -365,16 +373,14 @@ class _UploadScreenState extends State<UploadScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.videocam_rounded,
-            color: AppColors.primary, size: 44),
+        const Icon(Icons.videocam_rounded, color: AppColors.primary, size: 44),
         const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Text(
             _videoFile!.path.split('/').last,
             style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary),
+                fontWeight: FontWeight.w700, color: AppColors.textPrimary),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -411,8 +417,7 @@ class _UploadScreenState extends State<UploadScreen> {
                 fontSize: 16)),
         const SizedBox(height: 6),
         const Text('MP4, MOV, AVI supported',
-            style:
-                TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
       ],
     );
   }

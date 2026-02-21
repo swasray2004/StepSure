@@ -67,7 +67,7 @@ class VideoAnalysisService {
       await controller.dispose();
       throw Exception(
         'Video is too short (${total.inSeconds}s). '
-        'Please use a video of at least 10 seconds of walking.',
+        'Please use a video of at least 10 seconds of walking (side or front-on view).',
       );
     }
 
@@ -131,7 +131,7 @@ class VideoAnalysisService {
       throw Exception(
         'Insufficient pose data detected ($posesDetected/$frameCount frames). '
         'Ensure the full body is visible and well-lit throughout the video, '
-        'and that the video is recorded from a side or slight angle.',
+        'and that the video is recorded from a side or front-on view.',
       );
     }
 

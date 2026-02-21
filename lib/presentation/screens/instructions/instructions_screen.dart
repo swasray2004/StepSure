@@ -18,7 +18,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
   int _currentStep = 0;
 
   final _steps = [
-    _Step(
+    const _Step(
       icon: Icons.phone_android_rounded,
       iconColor: Color(0xFF6366F1),
       title: 'Place Your Phone',
@@ -26,7 +26,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
           'Position your phone at hip height, either mounted on a stand or propped against a stable surface.',
       tip: 'Use a phone stand or lean it against a wall for best results.',
     ),
-    _Step(
+    const _Step(
       icon: Icons.straighten_rounded,
       iconColor: Color(0xFF0A7EA4),
       title: 'Keep Your Distance',
@@ -35,7 +35,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
       tip:
           'Test the framing before starting — check your feet and head are both visible.',
     ),
-    _Step(
+    const _Step(
       icon: Icons.directions_walk_rounded,
       iconColor: Color(0xFF00A890),
       title: 'Walk Naturally',
@@ -43,7 +43,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
           'Walk at your normal comfortable pace across the camera frame. Don\'t try to walk perfectly — natural gait gives the best analysis.',
       tip: 'Walk parallel to the camera, not toward it.',
     ),
-    _Step(
+    const _Step(
       icon: Icons.checkroom_rounded,
       iconColor: Color(0xFFF59E0B),
       title: 'Wear Contrasting Clothes',
@@ -51,7 +51,7 @@ class _InstructionsScreenState extends State<InstructionsScreen>
           'Wear clothing that contrasts with your background — dark clothes on a light background works best.',
       tip: 'Avoid baggy clothing as it can obscure joint positions.',
     ),
-    _Step(
+    const _Step(
       icon: Icons.lightbulb_outline_rounded,
       iconColor: Color(0xFFEF4444),
       title: 'Good Lighting',

@@ -3,7 +3,7 @@ import 'package:gait_rehab/features/notifications/notifications_screen.dart';
 import 'package:gait_rehab/core/constants/app_colors.dart';
 
 class NotificationBadge extends StatefulWidget {
-  const NotificationBadge({Key? key}) : super(key: key);
+  const NotificationBadge({super.key});
 
   @override
   State<NotificationBadge> createState() => _NotificationBadgeState();
@@ -32,7 +32,7 @@ class _NotificationBadgeState extends State<NotificationBadge> {
       child: Stack(
         alignment: Alignment.topRight,
         children: [
-          Icon(
+          const Icon(
             Icons.notifications_none_outlined,
             size: 28,
             color: AppColors.textDark,
@@ -44,7 +44,7 @@ class _NotificationBadgeState extends State<NotificationBadge> {
               child: Container(
                 width: 12,
                 height: 12,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColors.primary,
                   shape: BoxShape.circle,
                 ),

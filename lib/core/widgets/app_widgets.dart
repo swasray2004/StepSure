@@ -68,7 +68,7 @@ class _ScoreRingState extends State<ScoreRing>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  '${(widget.score * _animation.value / widget.score * 1).clamp(0, widget.score).toStringAsFixed(0)}',
+                  (widget.score * _animation.value / widget.score * 1).clamp(0, widget.score).toStringAsFixed(0),
                   style: TextStyle(
                     fontSize: widget.size * 0.28,
                     fontWeight: FontWeight.w800,

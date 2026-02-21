@@ -148,16 +148,16 @@ class ReportDetailScreen extends StatelessWidget {
                       ),
                     )
                   else
-                    _Section(
+                    const _Section(
                       icon: Icons.check_circle_outline_rounded,
                       title: 'Gait Abnormalities',
                       color: AppColors.success,
                       child: Row(
                         children: [
-                          const Icon(Icons.check_circle_rounded,
+                          Icon(Icons.check_circle_rounded,
                               color: AppColors.success, size: 18),
-                          const SizedBox(width: 8),
-                          const Text(
+                          SizedBox(width: 8),
+                          Text(
                               'No significant gait abnormalities detected.',
                               style: TextStyle(
                                   color: AppColors.success,

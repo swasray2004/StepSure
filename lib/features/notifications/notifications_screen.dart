@@ -191,7 +191,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                             if (_unreadCount > 0)
                               Text(
                                 '$_unreadCount unread',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 13,
                                   color: AppColors.primary,
                                   fontWeight: FontWeight.w600,
@@ -203,7 +203,7 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                       if (_unreadCount > 0)
                         TextButton(
                           onPressed: _markAllRead,
-                          child: Text(
+                          child: const Text(
                             'Mark all read',
                             style: TextStyle(
                               fontSize: 13,
@@ -414,7 +414,7 @@ class _NotifTileState extends State<_NotifTile>
                             const Spacer(),
                             Text(
                               widget.relativeTime,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontSize: 11,
                                 color: AppColors.textSecondary,
                                 fontWeight: FontWeight.w500,
@@ -436,7 +436,7 @@ class _NotifTileState extends State<_NotifTile>
                         const SizedBox(height: 7),
                         Text(
                           widget.notification.title,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
                             color: AppColors.textPrimary,
@@ -446,7 +446,7 @@ class _NotifTileState extends State<_NotifTile>
                         const SizedBox(height: 4),
                         Text(
                           widget.notification.body,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 13,
                             color: AppColors.textSecondary,
                             height: 1.45,

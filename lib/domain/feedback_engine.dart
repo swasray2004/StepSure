@@ -53,7 +53,9 @@ class FeedbackEngine {
     }
 
     if (strideConsistency < 50) {
-      print('[TTS] Speaking: Try to keep your steps more even and rhythmic.');
+      if (kDebugMode) {
+        print('[TTS] Speaking: Try to keep your steps more even and rhythmic.');
+      }
       _speak('consistency', 'Try to keep your steps more even and rhythmic.');
     }
 

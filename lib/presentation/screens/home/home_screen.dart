@@ -221,7 +221,7 @@ class _HomeTabState extends State<_HomeTab> {
                           BoxShadow(
                             color: AppColors.primary.withOpacity(0.04),
                             blurRadius: 16,
-                            offset: Offset(0, 4),
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
@@ -277,7 +277,7 @@ class _HomeTabState extends State<_HomeTab> {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.08),
                                         blurRadius: 12,
-                                        offset: Offset(0, 3),
+                                        offset: const Offset(0, 3),
                                       ),
                                     ],
                                   ),
@@ -298,7 +298,7 @@ class _HomeTabState extends State<_HomeTab> {
                                 ),
                               ),
                               // Notification badge
-                              NotificationBadge(),
+                              const NotificationBadge(),
                             ],
                           ),
                         ],
@@ -318,7 +318,7 @@ class _HomeTabState extends State<_HomeTab> {
                           BoxShadow(
                             color: AppColors.primary.withOpacity(0.08),
                             blurRadius: 24,
-                            offset: Offset(0, 8),
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
@@ -360,7 +360,7 @@ class _HomeTabState extends State<_HomeTab> {
                                           'Fall risk: ${risk[0].toUpperCase()}${risk.substring(1)}',
                                     )
                                   else
-                                    _InfoPill(
+                                    const _InfoPill(
                                       icon: Icons.play_circle_outline_rounded,
                                       text: 'Start your first session',
                                     ),
@@ -471,7 +471,7 @@ class _HomeTabState extends State<_HomeTab> {
                               BoxShadow(
                                 color: AppColors.primary.withOpacity(0.09),
                                 blurRadius: 18,
-                                offset: Offset(0, 6),
+                                offset: const Offset(0, 6),
                               ),
                             ],
                             border: Border.all(
@@ -700,7 +700,7 @@ class _AnimatedStatsBarState extends State<AnimatedStatsBar>
             const SizedBox(width: 10),
             Text(
               widget.label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 15,
                 color: AppColors.textPrimary,
@@ -778,7 +778,7 @@ class _InfoPill extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             text,
-            style: TextStyle(
+            style: const TextStyle(
               fontFamily: AppText.fontFamily,
               fontSize: 12,
               color: Colors.white,
@@ -801,7 +801,7 @@ class NotificationBadge extends StatelessWidget {
       right: -5,
       child: Container(
         padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.red,
           shape: BoxShape.circle,
         ),

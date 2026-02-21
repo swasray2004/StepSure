@@ -72,12 +72,16 @@ class _UploadScreenState extends State<UploadScreen> {
       _errorMessage = null;
     });
 
+    final List<String> frameLogs = [];
     try {
       final metrics = await _analysisService.analyzeVideo(
         videoPath: _videoFile!.path,
         repaintKey: _repaintKey,
         onProgress: (p) {
           if (mounted) setState(() => _progress = p);
+        },
+        onLog: (msg) {
+          frameLogs.add(msg);
         },
       );
 
@@ -125,10 +129,15 @@ class _UploadScreenState extends State<UploadScreen> {
         );
       }
     } catch (e) {
+      final errorMsg = e.toString().replaceFirst('Exception: ', '') +
+          (frameLogs.isNotEmpty
+              ? '\n\nFrame logs:\n' + frameLogs.take(10).join('\n')
+              : '');
+      debugPrint('[ANALYZE ERROR] $errorMsg');
       if (mounted) {
         setState(() {
           _analyzing = false;
-          _errorMessage = e.toString().replaceFirst('Exception: ', '');
+          _errorMessage = errorMsg;
         });
       }
     }
@@ -142,18 +151,17 @@ class _UploadScreenState extends State<UploadScreen> {
       body: Stack(
         children: [
           // ── Hidden VideoPlayer ─────────────────────────────────────────
-          // Positioned far off-screen so it's never visible, but Flutter
-          // still lays it out and paints it, allowing RepaintBoundary.toImage()
-          // to capture frames during analysis.
+          // Use Opacity and keep it on-screen but invisible, to ensure it is painted.
           if (_videoController != null)
-            Positioned(
-              left: -4000,
-              top: 0,
-              width: 320,
-              height: 240,
-              child: RepaintBoundary(
-                key: _repaintKey,
-                child: VideoPlayer(_videoController!),
+            Opacity(
+              opacity: 0.01,
+              child: SizedBox(
+                width: 320,
+                height: 240,
+                child: RepaintBoundary(
+                  key: _repaintKey,
+                  child: VideoPlayer(_videoController!),
+                ),
               ),
             ),
 
@@ -161,178 +169,187 @@ class _UploadScreenState extends State<UploadScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF00A890), Color(0xFF00D4AA)],
-                      ),
-                      borderRadius: BorderRadius.circular(22),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Icon(Icons.upload_file_rounded,
-                              color: Colors.white, size: 28),
-                        ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Analyse Existing Video',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 16)),
-                              SizedBox(height: 4),
-                              Text(
-                                  'Upload a walking video for full gait analysis',
-                                  style: TextStyle(
-                                      color: Colors.white70, fontSize: 12)),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 28),
-
-                  // Video picker / progress area
-                  GestureDetector(
-                    onTap: _analyzing
-                        ? null
-                        : (_videoFile != null ? null : _pickVideo),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      height: 200,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: _videoFile != null
-                            ? AppColors.primary.withOpacity(0.08)
-                            : AppColors.cardBg,
-                        borderRadius: BorderRadius.circular(22),
-                        border: Border.all(
-                          color: _videoFile != null
-                              ? AppColors.primary
-                              : AppColors.primary.withOpacity(0.15),
-                          width: _videoFile != null ? 2 : 1,
-                        ),
-                      ),
-                      child: _analyzing
-                          ? _buildAnalyzingView()
-                          : _videoFile != null
-                              ? _buildVideoSelectedView()
-                              : _buildEmptyView(),
-                    ),
-                  ),
-
-                  // Error message
-                  if (_errorMessage != null) ...[
-                    const SizedBox(height: 12),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: AppColors.danger.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: AppColors.danger.withOpacity(0.3)),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF00A890), Color(0xFF00D4AA)],
+                        ),
+                        borderRadius: BorderRadius.circular(22),
                       ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Icons.error_outline,
-                              color: AppColors.danger, size: 18),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _errorMessage!,
-                              style: const TextStyle(
-                                  fontSize: 12, color: AppColors.danger),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 24),
-
-                  // Requirements list
-                  const Text('Requirements',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                          fontSize: 15)),
-                  const SizedBox(height: 12),
-                  ...[
-                    (
-                      Icons.directions_walk_rounded,
-                      'Full body visible throughout the video'
-                    ),
-                    (
-                      Icons.wb_sunny_outlined,
-                      'Good lighting, avoid dark/blurry videos'
-                    ),
-                    (
-                      Icons.phone_android_rounded,
-                      'Side view or front-on view supported'
-                    ),
-                    (
-                      Icons.straighten_rounded,
-                      'At least 10 seconds of walking footage'
-                    ),
-                  ].map(
-                    (item) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(6),
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(8),
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(14),
                             ),
-                            child: Icon(item.$1,
-                                color: AppColors.primary, size: 16),
+                            child: const Icon(Icons.upload_file_rounded,
+                                color: Colors.white, size: 28),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(item.$2,
-                                style: const TextStyle(
-                                    fontSize: 13,
-                                    color: AppColors.textSecondary)),
+                          const SizedBox(width: 16),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Analyse Existing Video',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 16)),
+                                SizedBox(height: 4),
+                                Text(
+                                    'Upload a walking video for full gait analysis',
+                                    style: TextStyle(
+                                        color: Colors.white70, fontSize: 12)),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ),
 
-                  const Spacer(),
+                    const SizedBox(height: 28),
 
-                  PrimaryButton(
-                    label: _analyzing
-                        ? 'Analysing... ${(_progress * 100).toStringAsFixed(0)}%'
-                        : (_videoFile != null
-                            ? 'Analyse Video'
-                            : 'Select Video'),
-                    icon: _analyzing ? null : Icons.play_circle_outline_rounded,
-                    onTap: _analyzing
-                        ? () {}
-                        : (_videoFile != null ? _analyzeVideo : _pickVideo),
-                    color: AppColors.primary,
-                  ),
-                ],
+                    // Video picker / progress area
+                    GestureDetector(
+                      onTap: _analyzing ? null : _pickVideo,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 300),
+                        height: 200,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: _videoFile != null
+                              ? AppColors.primary.withOpacity(0.08)
+                              : AppColors.cardBg,
+                          borderRadius: BorderRadius.circular(22),
+                          border: Border.all(
+                            color: _videoFile != null
+                                ? AppColors.primary
+                                : AppColors.primary.withOpacity(0.15),
+                            width: _videoFile != null ? 2 : 1,
+                          ),
+                        ),
+                        child: _analyzing
+                            ? _buildAnalyzingView()
+                            : _videoFile != null
+                                ? _buildVideoSelectedView()
+                                : _buildEmptyView(),
+                      ),
+                    ),
+
+                    // Error message
+                    if (_errorMessage != null) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        constraints:
+                            const BoxConstraints(maxHeight: 350, minHeight: 80),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.danger.withOpacity(0.10),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                              color: AppColors.danger.withOpacity(0.35)),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.error_outline,
+                                color: AppColors.danger, size: 20),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Scrollbar(
+                                thumbVisibility: true,
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.vertical,
+                                  child: Text(
+                                    _errorMessage!,
+                                    style: const TextStyle(
+                                        fontSize: 13, color: AppColors.danger),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 24),
+
+                    // Requirements list
+                    const Text('Requirements',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                            fontSize: 15)),
+                    const SizedBox(height: 12),
+                    ...[
+                      (
+                        Icons.directions_walk_rounded,
+                        'Full body visible throughout the video'
+                      ),
+                      (
+                        Icons.wb_sunny_outlined,
+                        'Good lighting, avoid dark/blurry videos'
+                      ),
+                      (
+                        Icons.phone_android_rounded,
+                        'Side view or front-on view supported'
+                      ),
+                      (
+                        Icons.straighten_rounded,
+                        'At least 10 seconds of walking footage'
+                      ),
+                    ].map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(item.$1,
+                                  color: AppColors.primary, size: 16),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(item.$2,
+                                  style: const TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textSecondary)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    PrimaryButton(
+                      label: _analyzing
+                          ? 'Analysing... ${(_progress * 100).toStringAsFixed(0)}%'
+                          : (_videoFile != null
+                              ? 'Analyse Video'
+                              : 'Select Video'),
+                      icon:
+                          _analyzing ? null : Icons.play_circle_outline_rounded,
+                      onTap: _analyzing
+                          ? () {}
+                          : (_videoFile != null ? _analyzeVideo : _pickVideo),
+                      color: AppColors.primary,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

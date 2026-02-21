@@ -1,4 +1,5 @@
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
+import 'package:flutter/foundation.dart';
 
 class PoseService {
   late final PoseDetector _detector;
@@ -8,7 +9,7 @@ class PoseService {
     _detector = PoseDetector(
       options: PoseDetectorOptions(
         mode: PoseDetectionMode.stream,
-        model: PoseDetectionModel.accurate,
+        model: PoseDetectionModel.base,
       ),
     );
   }
@@ -18,6 +19,7 @@ class PoseService {
     _isProcessing = true;
     try {
       final poses = await _detector.processImage(inputImage);
+      debugPrint('[ML] Poses detected: ${poses.length}');
       return poses.isNotEmpty ? poses.first : null;
     } finally {
       _isProcessing = false;

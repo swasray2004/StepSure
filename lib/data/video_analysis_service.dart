@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+import 'dart:typed_data';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
@@ -46,95 +48,74 @@ class VideoAnalysisService {
     required String videoPath,
     required GlobalKey repaintKey,
     void Function(double progress)? onProgress,
+    void Function(String log)? onLog, // Optional log callback
   }) async {
-    // ── Initialise video controller ────────────────────────────────────────
-    final controller = VideoPlayerController.file(File(videoPath));
-    await controller.initialize();
-    await controller.setVolume(0); // silent — TTS from FeedbackEngine is enough
-    await controller.setLooping(false);
-
-    final total = controller.value.duration;
-    if (total == Duration.zero) {
-      await controller.dispose();
-      throw Exception(
-        'Could not read video duration. '
-        'Ensure the file is a valid MP4/MOV/AVI video.',
-      );
+    // ── Extract frames using platform channel ──────────────────────────────
+    final tempDir = await Directory.systemTemp.createTemp();
+    final frameFiles = <File>[];
+    final totalFrames = 50;
+    try {
+      final MethodChannel _channel = MethodChannel('video_frame_extractor');
+      final List<dynamic>? thumbnails =
+          await _channel.invokeMethod('extractFrames', {
+        'videoPath': videoPath,
+        'fps': 5,
+        'width': 720,
+        'height': 405,
+        'count': totalFrames,
+      });
+      if (thumbnails != null) {
+        for (int i = 0; i < thumbnails.length; i++) {
+          final bytes = thumbnails[i] as Uint8List;
+          final file = File('${tempDir.path}/frame_$i.jpg');
+          await file.writeAsBytes(bytes);
+          frameFiles.add(file);
+          onProgress?.call((i + 1) / totalFrames);
+        }
+      }
+    } catch (e) {
+      onLog?.call('[ERROR] Frame extraction failed: $e');
     }
-
-    final frameCount = (total.inMilliseconds / 200).floor(); // 5 fps
-    if (frameCount < 10) {
-      await controller.dispose();
-      throw Exception(
-        'Video is too short (${total.inSeconds}s). '
-        'Please use a video of at least 10 seconds of walking (side or front-on view).',
-      );
+    if (frameFiles.length < 10) {
+      onLog?.call('[ERROR] Video is too short or frame extraction failed.');
+      throw Exception('Video is too short or frame extraction failed.');
     }
-
-    // ── Process frames ─────────────────────────────────────────────────────
     _gaitService.startSession();
     int posesDetected = 0;
-
-    for (int i = 0; i < frameCount; i++) {
+    for (int i = 0; i < frameFiles.length; i++) {
       try {
-        // Seek to target timestamp and let the widget render the frame.
-        await controller.seekTo(Duration(milliseconds: i * 200));
-        await controller.play();
-        await Future.delayed(const Duration(milliseconds: 100));
-        await controller.pause();
-
-        // Capture the rendered VideoPlayer widget as raw RGBA pixels.
-        final boundary = repaintKey.currentContext?.findRenderObject()
-            as RenderRepaintBoundary?;
-        if (boundary == null) continue;
-
-        final uiImage = await boundary.toImage(pixelRatio: 1.0);
-        final int frameW = uiImage.width;
-        final int frameH = uiImage.height;
-
-        final byteData =
-            await uiImage.toByteData(format: ui.ImageByteFormat.rawRgba);
-        uiImage.dispose(); // free GPU texture immediately
-
-        if (byteData == null) continue;
-
-        // Build InputImage. rawRgba gives RGBA bytes; we label as bgra8888
-        // because pose detection is colour-agnostic and both formats are
-        // accepted on the ML Kit software path.
-        final inputImage = InputImage.fromBytes(
-          bytes: byteData.buffer.asUint8List(),
-          metadata: InputImageMetadata(
-            size: Size(frameW.toDouble(), frameH.toDouble()),
-            // Widget renders display-oriented frames — no additional rotation.
-            rotation: InputImageRotation.rotation0deg,
-            format: InputImageFormat.bgra8888,
-            bytesPerRow: frameW * 4,
-          ),
-        );
-
+        final inputImage = InputImage.fromFilePath(frameFiles[i].path);
         final poses = await _detector.processImage(inputImage);
         if (poses.isNotEmpty) {
           _gaitService.processFrame(poses.first);
           posesDetected++;
+          onLog?.call(
+              '[INFO] Frame $i: Pose detected (${poses.first.landmarks.length} landmarks).');
+        } else {
+          onLog?.call('[INFO] Frame $i: No pose detected.');
         }
-      } catch (_) {
-        // Skip this frame and continue — individual frame failures are normal
-        // (e.g. seek not yet complete, boundary temporarily null).
+      } catch (e, stack) {
+        onLog?.call('[ERROR] Frame $i: Exception: $e\n$stack');
       }
-
-      onProgress?.call((i + 1) / frameCount);
+      onProgress?.call((i + 1) / frameFiles.length);
     }
-
-    await controller.dispose();
-
+    // Clean up temp frames
+    for (final f in frameFiles) {
+      try {
+        f.deleteSync();
+      } catch (_) {}
+    }
+    try {
+      await tempDir.delete(recursive: true);
+    } catch (_) {}
     if (posesDetected < 5) {
+      onLog?.call(
+          '[ERROR] Insufficient pose data detected ($posesDetected/${frameFiles.length} frames). Ensure the full body is visible and well-lit throughout the video, and that the video is recorded from a side or front-on view.');
       throw Exception(
-        'Insufficient pose data detected ($posesDetected/$frameCount frames). '
-        'Ensure the full body is visible and well-lit throughout the video, '
-        'and that the video is recorded from a side or front-on view.',
-      );
+          'Insufficient pose data detected ($posesDetected/${frameFiles.length} frames). Ensure the full body is visible and well-lit throughout the video, and that the video is recorded from a side or front-on view.');
     }
-
+    onLog?.call(
+        '[SUCCESS] Video analysis complete. $posesDetected poses detected from ${frameFiles.length} frames.');
     return _gaitService.computeSessionMetrics();
   }
 

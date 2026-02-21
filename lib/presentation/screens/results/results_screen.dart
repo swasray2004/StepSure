@@ -193,43 +193,50 @@ class _ResultsScreenState extends State<ResultsScreen>
                       title: 'Gait Metrics',
                     ),
                     const SizedBox(height: 14),
-                    GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 1.3,
-                      children: [
-                        MetricCard(
-                          label: 'Step Symmetry',
-                          value: symmetry.toStringAsFixed(0),
-                          unit: '%',
-                          icon: Icons.balance_rounded,
-                          color: AppColors.primary,
-                        ),
-                        MetricCard(
-                          label: 'Cadence',
-                          value: cadence.toStringAsFixed(0),
-                          unit: 'spm',
-                          icon: Icons.speed_rounded,
-                          color: AppColors.primary,
-                        ),
-                        MetricCard(
-                          label: 'Consistency',
-                          value: consistency.toStringAsFixed(0),
-                          unit: '%',
-                          icon: Icons.timeline_rounded,
-                          color: AppColors.primary,
-                        ),
-                        MetricCard(
-                          label: 'Stride Length',
-                          value: strideLen.toStringAsFixed(2),
-                          unit: 'm',
-                          icon: Icons.straighten_rounded,
-                          color: AppColors.warning,
-                        ),
-                      ],
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final width = constraints.maxWidth;
+                        // Calculate aspect ratio based on available width
+                        final aspectRatio = width > 400 ? 1.3 : 1.0;
+                        return GridView.count(
+                          crossAxisCount: 2,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: aspectRatio,
+                          children: [
+                            MetricCard(
+                              label: 'Step Symmetry',
+                              value: symmetry.toStringAsFixed(0),
+                              unit: '%',
+                              icon: Icons.balance_rounded,
+                              color: AppColors.primary,
+                            ),
+                            MetricCard(
+                              label: 'Cadence',
+                              value: cadence.toStringAsFixed(0),
+                              unit: 'spm',
+                              icon: Icons.speed_rounded,
+                              color: AppColors.primary,
+                            ),
+                            MetricCard(
+                              label: 'Consistency',
+                              value: consistency.toStringAsFixed(0),
+                              unit: '%',
+                              icon: Icons.timeline_rounded,
+                              color: AppColors.primary,
+                            ),
+                            MetricCard(
+                              label: 'Stride Length',
+                              value: strideLen.toStringAsFixed(2),
+                              unit: 'm',
+                              icon: Icons.straighten_rounded,
+                              color: AppColors.warning,
+                            ),
+                          ],
+                        );
+                      },
                     ),
 
                     const SizedBox(height: 28),

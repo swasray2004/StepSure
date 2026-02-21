@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import '../results/results_screen.dart';
 import 'package:gait_rehab/core/constants/app_colors.dart';
@@ -22,105 +23,9 @@ class RecordingScreen extends StatefulWidget {
 }
 
 class _RecordingScreenState extends State<RecordingScreen> {
-  CameraController? _cameraController;
-  String? _cameraError;
-  late PoseService _poseService;
-  late FeedbackEngine _feedbackEngine;
-  late GaitAnalysisService _gaitService;
-  final _supabase = SupabaseService();
-
-  Pose? _currentPose;
-  Size _imageSize = Size.zero;
-  InputImageRotation _inputRotation = InputImageRotation.rotation0deg;
-  bool _isRecording = false;
-  int _sessionSeconds = 0;
-  late DateTime _sessionStart;
-
-  @override
-  void initState() {
-    super.initState();
-    _poseService = PoseService();
-    _feedbackEngine = FeedbackEngine();
-    _gaitService = GaitAnalysisService(feedbackEngine: _feedbackEngine);
-    _initCamera();
-  }
-
-  Future<void> _initCamera() async {
-    final cameras = await availableCameras();
-    if (cameras.isEmpty) {
-      setState(() {
-        _cameraError = 'No cameras found on this device.';
-      });
-      return;
-    }
-    _cameraController = CameraController(
-      cameras.first,
-      ResolutionPreset.medium,
-      enableAudio: false,
-    );
-    await _cameraController!.initialize();
-    _inputRotation = _rotationFromSensor(
-      _cameraController!.description.sensorOrientation,
-    );
-    if (mounted) setState(() {});
-  }
-
-  InputImageRotation _rotationFromSensor(int sensorOrientation) {
-    switch (sensorOrientation) {
-      case 90:
-        return InputImageRotation.rotation90deg;
-      case 180:
-        return InputImageRotation.rotation180deg;
-      case 270:
-        return InputImageRotation.rotation270deg;
-      default:
-        return InputImageRotation.rotation0deg;
-    }
-  }
-
-  void _startRecording() {
-    if (_isRecording) return;
-    setState(() {
-      _isRecording = true;
-      _sessionStart = DateTime.now();
-      _sessionSeconds = 0;
-    });
-    _gaitService.startSession();
-
-    _cameraController?.startImageStream((CameraImage image) async {
-      if (!_isRecording) return;
-
-      final inputImage = _inputImageFromCamera(image);
-      if (inputImage == null) {
-        debugPrint('[ML] InputImage conversion failed');
-        return;
-      }
-
-        debugPrint(
-          '[ML] InputImage created: size=${inputImage.metadata?.size}, rotation=${inputImage.metadata?.rotation}, format=${inputImage.metadata?.format}');
-
-      final pose = await _poseService.detectPose(inputImage);
-      if (pose != null && mounted) {
-        debugPrint('[ML] Pose detected: ${pose.landmarks.length} landmarks');
-        setState(() {
-          _currentPose = pose;
-          _imageSize = Size(image.width.toDouble(), image.height.toDouble());
-        });
-        _gaitService.processFrame(pose);
-      } else {
-        debugPrint('[ML] No pose detected');
-      }
-
-      setState(() {
-        _sessionSeconds = DateTime.now().difference(_sessionStart).inSeconds;
-      });
-    });
-  }
-
   InputImage? _inputImageFromCamera(CameraImage image) {
     try {
       if (Platform.isIOS) {
-        // iOS delivers a single BGRA8888 plane
         return InputImage.fromBytes(
           bytes: image.planes[0].bytes,
           metadata: InputImageMetadata(
@@ -131,9 +36,6 @@ class _RecordingScreenState extends State<RecordingScreen> {
           ),
         );
       } else {
-        // Android: YUV_420_888 — concatenate all planes so ML Kit gets a
-        // complete buffer (Y luma + U/V chroma). ML Kit tolerates the
-        // I420-style plane ordering as NV21.
         final WriteBuffer buffer = WriteBuffer();
         for (final plane in image.planes) {
           buffer.putUint8List(plane.bytes);
@@ -153,14 +55,110 @@ class _RecordingScreenState extends State<RecordingScreen> {
     }
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _feedbackEngine = FeedbackEngine();
+    _gaitService = GaitAnalysisService(feedbackEngine: _feedbackEngine);
+    _poseService = PoseService();
+    _initializeCamera();
+  }
+
+  Future<void> _initializeCamera() async {
+    try {
+      _cameras = await availableCameras();
+      _selectedCameraIndex = 0;
+      _cameraController = CameraController(
+        _cameras![_selectedCameraIndex],
+        ResolutionPreset.high,
+        enableAudio: false,
+      );
+      await _cameraController!.initialize();
+      setState(() {});
+    } catch (e) {
+      setState(() {
+        _cameraError = 'Camera error: $e';
+      });
+    }
+  }
+
+  void _switchCamera() async {
+    if (_cameras == null || _cameras!.length < 2) return;
+    _selectedCameraIndex = (_selectedCameraIndex + 1) % _cameras!.length;
+    await _cameraController?.dispose();
+    _cameraController = CameraController(
+      _cameras![_selectedCameraIndex],
+      ResolutionPreset.high,
+      enableAudio: false,
+    );
+    await _cameraController!.initialize();
+    setState(() {});
+  }
+
+  void _startRecording() async {
+    _sessionStart = DateTime.now();
+    _sessionSeconds = 0;
+    _errorLogs.clear();
+    _isRecording = true;
+    setState(() {});
+
+    // Start timer
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!_isRecording) {
+        timer.cancel();
+        return;
+      }
+      setState(() {
+        _sessionSeconds = DateTime.now().difference(_sessionStart).inSeconds;
+      });
+    });
+
+    // Start image stream for pose detection
+    try {
+      await _cameraController?.startImageStream((CameraImage image) async {
+        if (!_isRecording) return;
+        final inputImage = _inputImageFromCamera(image);
+        if (inputImage == null) return;
+        final pose = await _poseService.detectPose(inputImage);
+        setState(() {
+          _currentPose = pose;
+          _imageSize = Size(image.width.toDouble(), image.height.toDouble());
+        });
+        // Speech feedback and pose analysis
+        if (pose == null) {
+          _feedbackEngine.analyze(
+            symmetry: 0,
+            cadence: 0,
+            leftKneeAngle: 0,
+            rightKneeAngle: 0,
+            trunkLean: 0,
+            strideConsistency: 0,
+          );
+        } else {
+          _gaitService.processFrame(pose);
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _errorLogs.add('Image stream error: $e');
+      });
+    }
+  }
+
+  Timer? _timer;
+
   Future<void> _stopRecording() async {
     await _cameraController?.stopImageStream();
-    setState(() => _isRecording = false);
+    setState(() {
+      _isRecording = false;
+    });
 
+    // Compute session metrics
     final metrics = _gaitService.computeSessionMetrics();
     final score = ScoreCalculator.computeRecoveryScore(metrics);
     final fallRisk = ScoreCalculator.computeFallRisk(metrics);
-    final userId = _supabase.currentUserId!;
+    final userId = _supabase.currentUserId ?? '';
 
     final session = SessionModel(
       userId: userId,
@@ -173,6 +171,7 @@ class _RecordingScreenState extends State<RecordingScreen> {
       symmetry: metrics.symmetry,
       strideConsistency: metrics.strideConsistency,
       jointDeviation: metrics.jointDeviation,
+      videoUrl: null,
     );
 
     final sessionId = await _supabase.saveSession(session);
@@ -185,15 +184,32 @@ class _RecordingScreenState extends State<RecordingScreen> {
 
     if (mounted) {
       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ResultsScreen(
-              session: session.copyWith(id: sessionId).toMap(),
-              report: report,
-            ),
-          ));
+        context,
+        MaterialPageRoute(
+          builder: (_) => ResultsScreen(
+            session: session.copyWith(id: sessionId).toMap(),
+            report: report,
+          ),
+        ),
+      );
     }
   }
+
+  final List<String> _errorLogs = [];
+  CameraController? _cameraController;
+  List<CameraDescription>? _cameras;
+  int _selectedCameraIndex = 0;
+  String? _cameraError;
+  Pose? _currentPose;
+  Size? _imageSize;
+  InputImageRotation _inputRotation = InputImageRotation.rotation0deg;
+  bool _isRecording = false;
+  int _sessionSeconds = 0;
+  DateTime _sessionStart = DateTime.now();
+  late FeedbackEngine _feedbackEngine;
+  late GaitAnalysisService _gaitService;
+  late PoseService _poseService;
+  final SupabaseService _supabase = SupabaseService();
 
   @override
   Widget build(BuildContext context) {
@@ -206,21 +222,36 @@ class _RecordingScreenState extends State<RecordingScreen> {
 
     return Scaffold(
       backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        title: const Text('Live Gait Recording'),
+        actions: [
+          if (_cameras != null && _cameras!.length > 1)
+            IconButton(
+              icon: Icon(
+                _selectedCameraIndex == 0
+                    ? Icons.camera_front
+                    : Icons.camera_rear,
+                color: Colors.white,
+              ),
+              tooltip: 'Switch Camera',
+              onPressed: _switchCamera,
+            ),
+        ],
+      ),
       body: Stack(
         fit: StackFit.expand,
         children: [
           CameraPreview(_cameraController!),
-
           // Skeleton overlay
-          if (_currentPose != null)
+          if (_currentPose != null && _imageSize != null)
             CustomPaint(
               painter: SkeletonPainter(
                 pose: _currentPose!,
-                imageSize: _imageSize,
+                imageSize: _imageSize!,
                 rotation: _inputRotation,
               ),
             ),
-
           // HUD overlay
           Positioned(
             top: 60,
@@ -235,7 +266,34 @@ class _RecordingScreenState extends State<RecordingScreen> {
               ],
             ),
           ),
-
+          // Error log overlay
+          if (_errorLogs.isNotEmpty)
+            Positioned(
+              bottom: 140,
+              left: 20,
+              right: 20,
+              child: Container(
+                height: 120,
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black87,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.redAccent, width: 1),
+                ),
+                child: Scrollbar(
+                  child: ListView.builder(
+                    itemCount: _errorLogs.length,
+                    itemBuilder: (context, idx) => Text(
+                      _errorLogs[idx],
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           // Controls
           Positioned(
             bottom: 50,
@@ -287,6 +345,7 @@ class _RecordingScreenState extends State<RecordingScreen> {
 
   @override
   void dispose() {
+    _timer?.cancel();
     _cameraController?.dispose();
     _poseService.dispose();
     _feedbackEngine.dispose();

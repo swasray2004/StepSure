@@ -96,8 +96,8 @@ class _RecordingScreenState extends State<RecordingScreen> {
         return;
       }
 
-      debugPrint(
-          '[ML] InputImage created: ${inputImage.metadata.size}, rotation: ${inputImage.metadata.rotation}, format: ${inputImage.metadata.format}');
+        debugPrint(
+          '[ML] InputImage created: size=${inputImage.metadata?.size}, rotation=${inputImage.metadata?.rotation}, format=${inputImage.metadata?.format}');
 
       final pose = await _poseService.detectPose(inputImage);
       if (pose != null && mounted) {

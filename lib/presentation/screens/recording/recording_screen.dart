@@ -79,9 +79,11 @@ class _RecordingScreenState extends State<RecordingScreen> {
   }
 
   void _startRecording() {
+    if (_isRecording) return;
     setState(() {
       _isRecording = true;
       _sessionStart = DateTime.now();
+      _sessionSeconds = 0;
     });
     _gaitService.startSession();
 
@@ -89,15 +91,24 @@ class _RecordingScreenState extends State<RecordingScreen> {
       if (!_isRecording) return;
 
       final inputImage = _inputImageFromCamera(image);
-      if (inputImage == null) return;
+      if (inputImage == null) {
+        debugPrint('[ML] InputImage conversion failed');
+        return;
+      }
+
+      debugPrint(
+          '[ML] InputImage created: ${inputImage.metadata.size}, rotation: ${inputImage.metadata.rotation}, format: ${inputImage.metadata.format}');
 
       final pose = await _poseService.detectPose(inputImage);
       if (pose != null && mounted) {
+        debugPrint('[ML] Pose detected: ${pose.landmarks.length} landmarks');
         setState(() {
           _currentPose = pose;
           _imageSize = Size(image.width.toDouble(), image.height.toDouble());
         });
         _gaitService.processFrame(pose);
+      } else {
+        debugPrint('[ML] No pose detected');
       }
 
       setState(() {

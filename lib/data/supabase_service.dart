@@ -3,6 +3,13 @@ import 'dart:io';
 import '../domain/models/session_model.dart';
 
 class SupabaseService {
+    // Update session with video URL
+    Future<void> updateSessionVideoUrl(String sessionId, String videoUrl) async {
+      await _client
+          .from('sessions')
+          .update({'video_url': videoUrl})
+          .eq('id', sessionId);
+    }
   final _client = Supabase.instance.client;
 
   // Auth

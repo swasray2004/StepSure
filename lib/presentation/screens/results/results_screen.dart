@@ -31,6 +31,9 @@ class _ResultsScreenState extends State<ResultsScreen>
   @override
   void initState() {
     super.initState();
+    // Debug: Print received session and report data
+    debugPrint('[ResultsScreen] session: ${widget.session}');
+    debugPrint('[ResultsScreen] report: ${widget.report}');
     _controller = AnimationController(
         duration: const Duration(milliseconds: 700), vsync: this);
     _slideUp = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);

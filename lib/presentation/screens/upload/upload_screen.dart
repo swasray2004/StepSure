@@ -97,10 +97,11 @@ class _UploadScreenState extends State<UploadScreen> {
       );
 
       final sessionId = await _supabase.saveSession(session);
-      final videoUrl =
-          await _supabase.uploadVideo(_videoFile!.path, sessionId);
-      final sessionWithVideo =
-          session.copyWith(id: sessionId, videoUrl: videoUrl);
+      final videoUrl = await _supabase.uploadVideo(_videoFile!.path, sessionId);
+      if (videoUrl != null) {
+        await _supabase.updateSessionVideoUrl(sessionId, videoUrl);
+      }
+      final sessionWithVideo = session.copyWith(id: sessionId, videoUrl: videoUrl);
 
       final prev = await _supabase.getLastSession();
       final report = ReportGenerator.generate(

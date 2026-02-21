@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:gait_rehab/core/constants/app_colors.dart';
 import 'package:gait_rehab/core/constants/app_text.dart';
 import 'package:gait_rehab/core/widgets/widgets.dart';
+import 'package:gait_rehab/features/notifications/notifications_screen.dart';
 import 'package:lottie/lottie.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../instructions/instructions_screen.dart';
@@ -297,20 +298,45 @@ class _HomeTabState extends State<_HomeTab> {
                                 ),
                               ),
                               // Notification badge
-                              Positioned(
-                                right: -2,
-                                top: -2,
-                                child: Container(
-                                  width: 12,
-                                  height: 12,
-                                  decoration: BoxDecoration(
-                                    color: Colors.redAccent,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 2,
-                                    ),
+                              GestureDetector(
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const NotificationsScreen(),
                                   ),
+                                ),
+                                child: Stack(
+                                  alignment: Alignment.topRight,
+                                  children: [
+                                    Icon(
+                                      Icons.notifications_none_outlined,
+                                      size: 28,
+                                      color: AppColors.textDark,
+                                    ),
+                                    // TODO: Replace with real unread count
+                                    Positioned(
+                                      right: 0,
+                                      top: 0,
+                                      child: Container(
+                                        width: 12,
+                                        height: 12,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            '1', // Example unread count
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 8,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],

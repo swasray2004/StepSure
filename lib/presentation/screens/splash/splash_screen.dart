@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import '../../../core/constants/app_colors.dart';
@@ -13,31 +14,39 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
-  late final AnimationController _mainController;
+  late final AnimationController _gradientController;
   late final AnimationController _floatController;
-  late final Animation<double> _textFade;
+  late final AnimationController _scanController;
+  late final AnimationController _fadeController;
+  late final AnimationController _heartbeatController;
+
   bool _navigate = false;
 
   @override
   void initState() {
     super.initState();
 
-    _mainController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3500),
-    )..forward();
+    _gradientController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 6))
+          ..repeat(reverse: true);
 
-    _floatController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat(reverse: true);
+    _floatController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 4))
+          ..repeat(reverse: true);
 
-    _textFade = CurvedAnimation(
-      parent: _mainController,
-      curve: const Interval(0.4, 1.0, curve: Curves.easeOut),
-    );
+    _scanController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2))
+          ..repeat();
 
-    Future.delayed(const Duration(milliseconds: 4200), () {
+    _heartbeatController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2))
+          ..repeat(reverse: true);
+
+    _fadeController =
+        AnimationController(vsync: this, duration: const Duration(milliseconds: 1800))
+          ..forward();
+
+    Future.delayed(const Duration(milliseconds: 4500), () {
       if (!mounted) return;
       setState(() => _navigate = true);
     });
@@ -45,8 +54,11 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
-    _mainController.dispose();
+    _gradientController.dispose();
     _floatController.dispose();
+    _scanController.dispose();
+    _fadeController.dispose();
+    _heartbeatController.dispose();
     super.dispose();
   }
 
@@ -61,17 +73,29 @@ class _SplashScreenState extends State<SplashScreen>
 
     return Scaffold(
       body: AnimatedBuilder(
-        animation: _floatController,
+        animation: Listenable.merge([
+          _gradientController,
+          _floatController,
+          _scanController,
+          _heartbeatController,
+          _fadeController
+        ]),
         builder: (context, _) {
+          final gradientShift =
+              math.sin(_gradientController.value * math.pi) * 0.3;
+
           final floatOffset =
-              math.sin(_floatController.value * math.pi * 2) * 12;
+              math.sin(_floatController.value * math.pi * 2) * 10;
+
+          final heartbeatScale =
+              1 + (_heartbeatController.value * 0.08);
 
           return Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
+                begin: Alignment(-1, -1 + gradientShift),
+                end: Alignment(1, 1 - gradientShift),
+                colors: const [
                   AppColors.heroStart,
                   AppColors.heroMid,
                   AppColors.heroEnd,
@@ -81,91 +105,127 @@ class _SplashScreenState extends State<SplashScreen>
             child: Stack(
               children: [
 
-                /// Radial Glow Center
+                /// HEARTBEAT GLOW
                 Center(
-                  child: Container(
-                    width: 320,
-                    height: 320,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Colors.white.withOpacity(0.15),
-                          Colors.transparent
-                        ],
+                  child: Transform.scale(
+                    scale: heartbeatScale,
+                    child: Container(
+                      width: 380,
+                      height: 380,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            Colors.white.withOpacity(0.18),
+                            Colors.transparent
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
 
-                /// Main Content Perfectly Centered
+                /// PARTICLE SHIMMER
+                const Positioned.fill(
+                  child: _ParticleLayer(),
+                ),
+
+                /// CENTER CONTENT
                 Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
 
-                      /// Floating Lottie
-                      Transform.translate(
-                        offset: Offset(0, floatOffset),
-                        child: SizedBox(
-                          width: 280,
-                          height: 280,
-                          child: Lottie.asset(
-                            'assets/animations/walking2.json',
-                            fit: BoxFit.contain,
-                            alignment: Alignment.center,
+                      /// STACK FOR SCAN EFFECT
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+
+                          /// FLOATING LOTTIE
+                          Transform.translate(
+                            offset: Offset(0, floatOffset),
+                            child: SizedBox(
+                              width: 260,
+                              height: 260,
+                              child: Lottie.asset(
+                                'assets/animations/walking2.json',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
                           ),
-                        ),
+
+                          /// SCANNING LINE
+                          Positioned(
+                            top: 260 * _scanController.value,
+                            child: Container(
+                              width: 240,
+                              height: 3,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.white.withOpacity(0.9),
+                                    Colors.transparent
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          /// SKELETON WIREFRAME EFFECT
+                          Positioned.fill(
+                            child: Opacity(
+                              opacity: 0.12,
+                              child: CustomPaint(
+                                painter: _WireframePainter(),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 28),
 
+                      /// GLASS PANEL
                       FadeTransition(
-                        opacity: _textFade,
-                        child: const Text(
-                          'StepSure',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 10),
-
-                      FadeTransition(
-                        opacity: _textFade,
-                        child: Text(
-                          'Smart AI for Confident Walking',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.92),
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 36),
-
-                      FadeTransition(
-                        opacity: _textFade,
-                        child: SizedBox(
-                          width: 200,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(50),
-                            child: LinearProgressIndicator(
-                              value: _mainController.value,
-                              minHeight: 6,
-                              backgroundColor:
-                                  Colors.white.withOpacity(0.25),
-                              valueColor:
-                                  const AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
+                        opacity: _fadeController,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 28, vertical: 18),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.25),
+                                ),
+                              ),
+                              child: Column(
+                                children: const [
+                                  Text(
+                                    'StepSure',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 40,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.8,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'AI-Powered Gait Rehabilitation',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -180,4 +240,81 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
   }
+}
+
+class _ParticleLayer extends StatefulWidget {
+  const _ParticleLayer();
+
+  @override
+  State<_ParticleLayer> createState() => _ParticleLayerState();
+}
+
+class _ParticleLayerState extends State<_ParticleLayer>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(seconds: 8))
+          ..repeat();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (_, __) {
+        return CustomPaint(
+          painter: _ParticlePainter(_controller.value),
+          size: Size.infinite,
+        );
+      },
+    );
+  }
+}
+
+class _ParticlePainter extends CustomPainter {
+  final double progress;
+  _ParticlePainter(this.progress);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.1)
+      ..style = PaintingStyle.fill;
+
+    for (int i = 0; i < 30; i++) {
+      final dx = (size.width / 30) * i +
+          math.sin(progress * 2 * math.pi + i) * 20;
+      final dy = size.height * progress + (i * 30 % size.height);
+
+      canvas.drawCircle(
+        Offset(dx % size.width, dy % size.height),
+        2.5,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class _WireframePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..strokeWidth = 1;
+
+    canvas.drawLine(
+        Offset(size.width * 0.5, size.height * 0.1),
+        Offset(size.width * 0.5, size.height * 0.9),
+        paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

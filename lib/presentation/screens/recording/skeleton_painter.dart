@@ -16,11 +16,15 @@ class SkeletonPainter extends CustomPainter {
 
   final _bonePaint = Paint()
     ..color = const Color(0xFF00E5FF)
-    ..strokeWidth = 3.0
+    ..strokeWidth = 5.0
     ..style = PaintingStyle.stroke;
 
   final _jointPaint = Paint()
     ..color = const Color(0xFFFFEB3B)
+    ..style = PaintingStyle.fill;
+
+  final _importantJointPaint = Paint()
+    ..color = const Color(0xFF00FF00)
     ..style = PaintingStyle.fill;
 
   static const _connections = [
@@ -81,19 +85,37 @@ class SkeletonPainter extends CustomPainter {
       return Offset(sx, sy);
     }
 
-    // Draw bones
+    // Draw bones with thicker lines and filter low-confidence
     for (final conn in _connections) {
       final a = pose.landmarks[conn[0]];
       final b = pose.landmarks[conn[1]];
-      if (a != null && b != null && a.likelihood > 0.5 && b.likelihood > 0.5) {
+      if (a != null && b != null && a.likelihood > 0.6 && b.likelihood > 0.6) {
         canvas.drawLine(toOffset(a), toOffset(b), _bonePaint);
       }
     }
 
-    // Draw joints
+    // Highlight important joints (shoulders, hips, knees, ankles)
+    final important = [
+      PoseLandmarkType.leftShoulder,
+      PoseLandmarkType.rightShoulder,
+      PoseLandmarkType.leftHip,
+      PoseLandmarkType.rightHip,
+      PoseLandmarkType.leftKnee,
+      PoseLandmarkType.rightKnee,
+      PoseLandmarkType.leftAnkle,
+      PoseLandmarkType.rightAnkle,
+    ];
+    for (final type in important) {
+      final lm = pose.landmarks[type];
+      if (lm != null && lm.likelihood > 0.7) {
+        canvas.drawCircle(toOffset(lm), 10, _importantJointPaint);
+      }
+    }
+
+    // Draw other joints
     for (final lm in pose.landmarks.values) {
-      if (lm.likelihood > 0.5) {
-        canvas.drawCircle(toOffset(lm), 6, _jointPaint);
+      if (lm.likelihood > 0.6 && !important.contains(lm.type)) {
+        canvas.drawCircle(toOffset(lm), 7, _jointPaint);
       }
     }
   }

@@ -1,126 +1,150 @@
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_pose_detection/google_mlkit_pose_detection.dart';
 
+/// ML Kit returns landmark (x, y) in pixel coords of the **rotated** image.
+/// For a 90° sensor with raw frame 1280×720:
+///   - ML Kit internally rotates the image → effective size becomes 720×1280
+///   - landmarks are in [0..720] × [0..1280] (portrait space already)
+/// So we just scale those to screen size — NO manual rotation needed.
+///
+/// For front camera, ML Kit does NOT mirror, but CameraPreview does,
+/// so we mirror x ourselves.
+Offset _landmarkToScreen({
+  required double lx,
+  required double ly,
+  required Size effectiveImage, // after rotation: (rawH, rawW) for 90/270 deg
+  required Size screen,
+  required bool isFront,
+}) {
+  double x = lx;
+  double y = ly;
+
+  if (isFront) {
+    x = effectiveImage.width - x;
+  }
+
+  return Offset(
+    x / effectiveImage.width * screen.width,
+    y / effectiveImage.height * screen.height,
+  );
+}
+
 class SkeletonPainter extends CustomPainter {
   final Pose pose;
-  final Size imageSize;
+  final Size imageSize; // raw CameraImage size (UNROTATED, e.g. 1280×720)
+  final int sensorOrientation; // degrees: 0, 90, 180, 270
   final bool isFrontCamera;
-  final InputImageRotation rotation;
 
   SkeletonPainter({
     required this.pose,
     required this.imageSize,
-    this.isFrontCamera = false,
-    this.rotation = InputImageRotation.rotation0deg,
+    required this.sensorOrientation,
+    required this.isFrontCamera,
   });
 
+  static const double _confidenceThreshold = 0.40;
+
   final _bonePaint = Paint()
-    ..color = const Color(0xFF00E5FF)
-    ..strokeWidth = 5.0
+    ..strokeWidth = 3.0
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round;
+
+  final _jointPaint = Paint()..style = PaintingStyle.fill;
+
+  final _borderPaint = Paint()
+    ..color = Colors.white.withOpacity(0.80)
+    ..strokeWidth = 1.5
     ..style = PaintingStyle.stroke;
 
-  final _jointPaint = Paint()
-    ..color = const Color(0xFFFFEB3B)
-    ..style = PaintingStyle.fill;
-
-  final _importantJointPaint = Paint()
-    ..color = const Color(0xFF00FF00)
-    ..style = PaintingStyle.fill;
-
-  static const _connections = [
-    // Torso
-    [PoseLandmarkType.leftShoulder, PoseLandmarkType.rightShoulder],
-    [PoseLandmarkType.leftShoulder, PoseLandmarkType.leftHip],
-    [PoseLandmarkType.rightShoulder, PoseLandmarkType.rightHip],
-    [PoseLandmarkType.leftHip, PoseLandmarkType.rightHip],
-    // Left leg
-    [PoseLandmarkType.leftHip, PoseLandmarkType.leftKnee],
-    [PoseLandmarkType.leftKnee, PoseLandmarkType.leftAnkle],
-    // Right leg
-    [PoseLandmarkType.rightHip, PoseLandmarkType.rightKnee],
-    [PoseLandmarkType.rightKnee, PoseLandmarkType.rightAnkle],
-    // Arms
-    [PoseLandmarkType.leftShoulder, PoseLandmarkType.leftElbow],
-    [PoseLandmarkType.leftElbow, PoseLandmarkType.leftWrist],
-    [PoseLandmarkType.rightShoulder, PoseLandmarkType.rightElbow],
-    [PoseLandmarkType.rightElbow, PoseLandmarkType.rightWrist],
+  static const _connections = <(PoseLandmarkType, PoseLandmarkType)>[
+    (PoseLandmarkType.leftEar, PoseLandmarkType.leftEye),
+    (PoseLandmarkType.leftEye, PoseLandmarkType.nose),
+    (PoseLandmarkType.nose, PoseLandmarkType.rightEye),
+    (PoseLandmarkType.rightEye, PoseLandmarkType.rightEar),
+    (PoseLandmarkType.leftShoulder, PoseLandmarkType.rightShoulder),
+    (PoseLandmarkType.leftShoulder, PoseLandmarkType.leftElbow),
+    (PoseLandmarkType.leftElbow, PoseLandmarkType.leftWrist),
+    (PoseLandmarkType.rightShoulder, PoseLandmarkType.rightElbow),
+    (PoseLandmarkType.rightElbow, PoseLandmarkType.rightWrist),
+    (PoseLandmarkType.leftShoulder, PoseLandmarkType.leftHip),
+    (PoseLandmarkType.rightShoulder, PoseLandmarkType.rightHip),
+    (PoseLandmarkType.leftHip, PoseLandmarkType.rightHip),
+    (PoseLandmarkType.leftHip, PoseLandmarkType.leftKnee),
+    (PoseLandmarkType.leftKnee, PoseLandmarkType.leftAnkle),
+    (PoseLandmarkType.leftAnkle, PoseLandmarkType.leftHeel),
+    (PoseLandmarkType.leftHeel, PoseLandmarkType.leftFootIndex),
+    (PoseLandmarkType.rightHip, PoseLandmarkType.rightKnee),
+    (PoseLandmarkType.rightKnee, PoseLandmarkType.rightAnkle),
+    (PoseLandmarkType.rightAnkle, PoseLandmarkType.rightHeel),
+    (PoseLandmarkType.rightHeel, PoseLandmarkType.rightFootIndex),
   ];
+
+  /// The effective (post-rotation) image size that ML Kit outputs landmarks in.
+  Size get _effectiveSize {
+    if (sensorOrientation == 90 || sensorOrientation == 270) {
+      // Sensor was landscape, ML Kit rotated it to portrait
+      // raw: width=1280, height=720 → effective: width=720, height=1280
+      return Size(imageSize.height, imageSize.width);
+    }
+    return imageSize;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
-    // ML Kit returns landmark coordinates in the raw (unrotated) camera buffer
-    // space. We remap them to screen space accounting for sensor rotation so
-    // the skeleton overlay aligns with the body in the CameraPreview.
-    Offset toOffset(PoseLandmark lm) {
-      final imgW = imageSize.width;
-      final imgH = imageSize.height;
-      final screenW = size.width;
-      final screenH = size.height;
-      double sx, sy;
+    if (pose.landmarks.isEmpty) return;
 
-      switch (rotation) {
-        case InputImageRotation.rotation90deg:
-          // Buffer is landscape. The buffer's x-axis maps to screen y (inverted)
-          // and buffer's y-axis maps to screen x.
-          sx = isFrontCamera
-              ? (1.0 - lm.y / imgH) * screenW
-              : (lm.y / imgH) * screenW;
-          sy = (1.0 - lm.x / imgW) * screenH;
-        case InputImageRotation.rotation270deg:
-          sx = isFrontCamera
-              ? (lm.y / imgH) * screenW
-              : (1.0 - lm.y / imgH) * screenW;
-          sy = (lm.x / imgW) * screenH;
-        case InputImageRotation.rotation180deg:
-          sx = isFrontCamera
-              ? (lm.x / imgW) * screenW
-              : (1.0 - lm.x / imgW) * screenW;
-          sy = (1.0 - lm.y / imgH) * screenH;
-        default: // rotation0deg
-          sx = (lm.x / imgW) * screenW;
-          sy = (lm.y / imgH) * screenH;
-          if (isFrontCamera) sx = screenW - sx;
-      }
+    final effective = _effectiveSize;
+    final pts = <PoseLandmarkType, Offset>{};
+    final conf = <PoseLandmarkType, double>{};
 
-      return Offset(sx, sy);
+    for (final e in pose.landmarks.entries) {
+      final lm = e.value;
+      conf[e.key] = lm.likelihood;
+      pts[e.key] = _landmarkToScreen(
+        lx: lm.x,
+        ly: lm.y,
+        effectiveImage: effective,
+        screen: size,
+        isFront: isFrontCamera,
+      );
     }
 
-    // Draw bones with thicker lines and filter low-confidence
-    for (final conn in _connections) {
-      final a = pose.landmarks[conn[0]];
-      final b = pose.landmarks[conn[1]];
-      if (a != null && b != null && a.likelihood > 0.6 && b.likelihood > 0.6) {
-        canvas.drawLine(toOffset(a), toOffset(b), _bonePaint);
-      }
+    // Draw bones
+    for (final c in _connections) {
+      final a = pts[c.$1], b = pts[c.$2];
+      final ca = conf[c.$1] ?? 0, cb = conf[c.$2] ?? 0;
+      if (a == null || b == null) continue;
+      if (ca < _confidenceThreshold || cb < _confidenceThreshold) continue;
+      final alpha = ((ca + cb) / 2).clamp(0.0, 1.0);
+      _bonePaint.color = Color.fromRGBO(0, 229, 204, alpha);
+      canvas.drawLine(a, b, _bonePaint);
     }
 
-    // Highlight important joints (shoulders, hips, knees, ankles)
-    final important = [
-      PoseLandmarkType.leftShoulder,
-      PoseLandmarkType.rightShoulder,
-      PoseLandmarkType.leftHip,
-      PoseLandmarkType.rightHip,
-      PoseLandmarkType.leftKnee,
-      PoseLandmarkType.rightKnee,
-      PoseLandmarkType.leftAnkle,
-      PoseLandmarkType.rightAnkle,
-    ];
-    for (final type in important) {
-      final lm = pose.landmarks[type];
-      if (lm != null && lm.likelihood > 0.7) {
-        canvas.drawCircle(toOffset(lm), 10, _importantJointPaint);
+    // Draw joints
+    for (final e in pts.entries) {
+      final pt = e.value;
+      final c = conf[e.key] ?? 0;
+      if (c < _confidenceThreshold) {
+        canvas.drawCircle(
+          pt,
+          4,
+          Paint()
+            ..color = Colors.yellow.withOpacity(0.5)
+            ..style = PaintingStyle.fill,
+        );
+        continue;
       }
-    }
-
-    // Draw other joints
-    for (final lm in pose.landmarks.values) {
-      if (lm.likelihood > 0.6 && !important.contains(lm.type)) {
-        canvas.drawCircle(toOffset(lm), 7, _jointPaint);
-      }
+      final r = 5.0 + 2.0 * c;
+      _jointPaint.color = Color.fromRGBO(0, 255, 200, c.clamp(0.5, 1.0));
+      canvas.drawCircle(pt, r, _jointPaint);
+      canvas.drawCircle(pt, r, _borderPaint);
     }
   }
 
   @override
   bool shouldRepaint(SkeletonPainter old) =>
-      old.rotation != rotation || old.isFrontCamera != isFrontCamera || true;
+      old.pose != pose ||
+      old.imageSize != imageSize ||
+      old.sensorOrientation != sensorOrientation ||
+      old.isFrontCamera != isFrontCamera;
 }

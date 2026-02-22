@@ -6,6 +6,7 @@ import 'presentation/providers/session_provider.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
+import 'presentation/screens/splash/splash_screen.dart';
 import 'core/constants/app_colors.dart';
 
 void main() async {
@@ -37,7 +38,7 @@ class GaitRehabApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
           useMaterial3: true,
         ),
-        home: const AuthGate(),
+        home: const SplashScreen(next: AuthGate()),
       ),
     );
   }

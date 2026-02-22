@@ -110,13 +110,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final name = _profile?['full_name'] as String? ?? 'Patient';
+    String name = (_profile?['full_name'] as String?)?.trim() ?? '';
+    if (name.isEmpty) {
+      // Try to use email prefix as a fallback if available
+      final email = _profile?['email'] as String? ??
+          _client.auth.currentUser?.email ??
+          '';
+      if (email.contains('@')) {
+        name = email.split('@')[0];
+      } else {
+        name = 'Patient';
+      }
+    }
+    final email =
+        _profile?['email'] as String? ?? _client.auth.currentUser?.email ?? '';
     final age = _profile?['age'] as int?;
+    final gender = _profile?['gender'] as String? ?? '--';
     final affectedSide = _profile?['affected_side'] as String? ?? '--';
     final strokeDateStr = _profile?['stroke_date'] as String?;
     final strokeDate =
         strokeDateStr != null ? DateTime.tryParse(strokeDateStr) : null;
-    final email = _client.auth.currentUser?.email ?? '';
+    final phone = _profile?['phone'] as String? ?? '--';
+    final address = _profile?['address'] as String? ?? '--';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -244,9 +259,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           children: [
                             StatRow(label: 'Full Name', value: name),
                             Divider(color: AppColors.danger.withOpacity(0.15)),
+                            StatRow(label: 'Email', value: email),
+                            Divider(color: AppColors.danger.withOpacity(0.15)),
                             StatRow(
                                 label: 'Age',
                                 value: age != null ? '$age years' : '--'),
+                            Divider(color: AppColors.danger.withOpacity(0.15)),
+                            StatRow(label: 'Gender', value: gender),
                             Divider(color: AppColors.danger.withOpacity(0.15)),
                             StatRow(
                               label: 'Stroke Date',
@@ -257,9 +276,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Divider(color: AppColors.danger.withOpacity(0.15)),
                             StatRow(
                               label: 'Affected Side',
-                              value:
-                                  '${affectedSide[0].toUpperCase()}${affectedSide.substring(1)}',
+                              value: affectedSide != '--'
+                                  ? '${affectedSide[0].toUpperCase()}${affectedSide.substring(1)}'
+                                  : '--',
                             ),
+                            Divider(color: AppColors.danger.withOpacity(0.15)),
+                            StatRow(label: 'Phone', value: phone),
+                            Divider(color: AppColors.danger.withOpacity(0.15)),
+                            StatRow(label: 'Address', value: address),
                           ],
                         ),
 

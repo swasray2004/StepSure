@@ -379,9 +379,8 @@ class _LoadingView extends StatelessWidget {
             SizedBox(
               width: 140,
               height: 140,
-              child: Lottie.asset(
-                'assets/animations/walking2.json',
-                repeat: true,
+              child: Image.asset(
+                'assets/gifs/loader.gif',
                 fit: BoxFit.contain,
               ),
             ),

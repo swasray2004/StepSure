@@ -7,6 +7,7 @@ import 'presentation/providers/auth_provider.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'core/constants/app_colors.dart';
+import 'presentation/screens/splash/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,7 +38,9 @@ class GaitRehabApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
           useMaterial3: true,
         ),
-        home: const AuthGate(),
+        home: SplashScreen(
+          next: const AuthGate(),
+        ),
       ),
     );
   }

@@ -8,6 +8,8 @@
 		<string>This app needs access to your camera to record videos.</string>
 		<key>NSMicrophoneUsageDescription</key>
 		<string>This app needs access to your microphone to record videos.</string>
+		<key>NSPhotoLibraryAddUsageDescription</key>
+<string>This app needs access to save videos to your photo library.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

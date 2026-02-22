@@ -144,18 +144,30 @@ class _UploadScreenState extends State<UploadScreen>
 
   Future<void> _pickVideo() async {
     String? pickedPath;
-    if (defaultTargetPlatform == TargetPlatform.iOS) {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.video,
-        allowMultiple: false,
-      );
-      if (result != null && result.files.single.path != null) {
-        pickedPath = result.files.single.path;
+
+    try {
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        // Use file_picker with allowedExtensions to bypass PHPickerViewController
+        FilePickerResult? result = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['mp4', 'mov', 'avi', 'm4v'],
+          allowMultiple: false,
+          withData: false,
+          withReadStream: false,
+        );
+        if (result != null && result.files.single.path != null) {
+          pickedPath = result.files.single.path;
+        }
+      } else {
+        final picked = await _picker.pickVideo(source: ImageSource.gallery);
+        if (picked != null) pickedPath = picked.path;
       }
-    } else {
-      final picked = await _picker.pickVideo(source: ImageSource.gallery);
-      if (picked != null) pickedPath = picked.path;
+    } catch (e) {
+      debugPrint('[PICK ERROR] $e');
+      setState(() => _errorMessage = 'Could not open video picker: $e');
+      return;
     }
+
     if (pickedPath == null) return;
 
     final pickedFile = File(pickedPath);

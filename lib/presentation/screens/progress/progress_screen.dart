@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../data/supabase_service.dart';
@@ -43,105 +45,226 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Recovery Progress'), centerTitle: true),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Summary cards
-            Row(
-              children: [
-                _statCard(
-                    'Sessions', '${_sessions.length}', Icons.calendar_today),
-                const SizedBox(width: 12),
-                _statCard(
-                  'Best Score',
-                  _sessions.isEmpty
-                      ? '-'
-                      : _sessions
-                          .map((s) => s.recoveryScore)
-                          .reduce((a, b) => a > b ? a : b)
-                          .toStringAsFixed(1),
-                  Icons.emoji_events,
-                ),
-                const SizedBox(width: 12),
-                _statCard(
-                  'Latest',
-                  _sessions.isEmpty
-                      ? '-'
-                      : _sessions.last.recoveryScore.toStringAsFixed(1),
-                  Icons.trending_up,
-                ),
-              ],
+      // ── Replaced AppBar with a custom gradient header ──
+      body: Column(
+        children: [
+          // ── Modern Gradient Header ──────────────────────────────
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF00A890), Color(0xFF0A7EA4)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
             ),
-            const SizedBox(height: 24),
-            const Text('Recovery Score Over Time',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            Expanded(
-              child: spots.length < 2
-                  ? const Center(
-                      child: Text(
-                          'Complete at least 2 sessions to see progress graph.'))
-                  : LineChart(
-                      LineChartData(
-                        minY: 0,
-                        maxY: 100,
-                        gridData:
-                            FlGridData(show: true, horizontalInterval: 20),
-                        borderData: FlBorderData(show: false),
-                        titlesData: FlTitlesData(
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              getTitlesWidget: (val, _) => Text(
-                                'S${(val + 1).toInt()}',
-                                style: const TextStyle(fontSize: 11),
-                              ),
-                            ),
-                          ),
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              interval: 20,
-                              getTitlesWidget: (val, _) => Text(
-                                  '${val.toInt()}',
-                                  style: const TextStyle(fontSize: 11)),
-                            ),
-                          ),
-                          topTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false)),
-                          rightTitles: AxisTitles(
-                              sideTitles: SideTitles(showTitles: false)),
-                        ),
-                        lineBarsData: [
-                          LineChartBarData(
-                            spots: spots,
-                            isCurved: true,
-                            gradient: const LinearGradient(
-                              colors: [AppColors.primary, AppColors.secondary],
-                            ),
-                            barWidth: 3,
-                            dotData: FlDotData(show: true),
-                            belowBarData: BarAreaData(
-                              show: true,
-                              gradient: LinearGradient(
-                                colors: [
-                                  AppColors.primary.withOpacity(0.3),
-                                  AppColors.secondary.withOpacity(0.05),
-                                ],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                              ),
-                            ),
-                          ),
-                        ],
+            child: SafeArea(
+              bottom: false,
+              child: Stack(
+                children: [
+                  // Decorative circles
+                  Positioned(
+                    top: -40,
+                    right: -30,
+                    child: Container(
+                      width: 160,
+                      height: 160,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.07),
                       ),
                     ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 80,
+                    child: Container(
+                      width: 70,
+                      height: 70,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.05),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 16, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.18),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                    color: Colors.white.withOpacity(0.25)),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.trending_up_rounded,
+                                      color: Colors.white, size: 14),
+                                  SizedBox(width: 5),
+                                  Text(
+                                    'Progress',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Recovery Progress',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -1.0,
+                                  height: 1.0,
+                                ),
+                              ),
+                              SizedBox(height: 6),
+                              Text(
+                                'Track your gait recovery over time',
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+
+          // ── Original body content (completely unchanged) ────────
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Summary cards
+                  Row(
+                    children: [
+                      _statCard('Sessions', '${_sessions.length}',
+                          Icons.calendar_today),
+                      const SizedBox(width: 12),
+                      _statCard(
+                        'Best Score',
+                        _sessions.isEmpty
+                            ? '-'
+                            : _sessions
+                                .map((s) => s.recoveryScore)
+                                .reduce((a, b) => a > b ? a : b)
+                                .toStringAsFixed(1),
+                        Icons.emoji_events,
+                      ),
+                      const SizedBox(width: 12),
+                      _statCard(
+                        'Latest',
+                        _sessions.isEmpty
+                            ? '-'
+                            : _sessions.last.recoveryScore.toStringAsFixed(1),
+                        Icons.trending_up,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('Recovery Score Over Time',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 12),
+                  Expanded(
+                    child: spots.length < 2
+                        ? const Center(
+                            child: Text(
+                                'Complete at least 2 sessions to see progress graph.'))
+                        : LineChart(
+                            LineChartData(
+                              minY: 0,
+                              maxY: 100,
+                              gridData: FlGridData(
+                                  show: true, horizontalInterval: 20),
+                              borderData: FlBorderData(show: false),
+                              titlesData: FlTitlesData(
+                                bottomTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    getTitlesWidget: (val, _) => Text(
+                                      'S${(val + 1).toInt()}',
+                                      style: const TextStyle(fontSize: 11),
+                                    ),
+                                  ),
+                                ),
+                                leftTitles: AxisTitles(
+                                  sideTitles: SideTitles(
+                                    showTitles: true,
+                                    interval: 20,
+                                    getTitlesWidget: (val, _) => Text(
+                                        '${val.toInt()}',
+                                        style: const TextStyle(fontSize: 11)),
+                                  ),
+                                ),
+                                topTitles: AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false)),
+                                rightTitles: AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false)),
+                              ),
+                              lineBarsData: [
+                                LineChartBarData(
+                                  spots: spots,
+                                  isCurved: true,
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      AppColors.primary,
+                                      AppColors.secondary
+                                    ],
+                                  ),
+                                  barWidth: 3,
+                                  dotData: FlDotData(show: true),
+                                  belowBarData: BarAreaData(
+                                    show: true,
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        AppColors.primary.withOpacity(0.3),
+                                        AppColors.secondary.withOpacity(0.05),
+                                      ],
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

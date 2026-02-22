@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:gait_rehab/core/constants/app_colors.dart';
 import 'package:gait_rehab/core/constants/app_text.dart';
 import 'package:gait_rehab/core/widgets/widgets.dart';
+import 'package:gait_rehab/presentation/screens/notifications/notification_screen.dart';
 import 'package:lottie/lottie.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../instructions/instructions_screen.dart';
@@ -379,8 +380,9 @@ class _LoadingView extends StatelessWidget {
             SizedBox(
               width: 140,
               height: 140,
-              child: Image.asset(
-                'assets/gifs/loader.gif',
+              child: Lottie.asset(
+                'assets/animations/loading.json',
+                repeat: true,
                 fit: BoxFit.contain,
               ),
             ),
@@ -599,7 +601,14 @@ class _HeroHeader extends StatelessWidget {
                       clipBehavior: Clip.none,
                       children: [
                         GestureDetector(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const NotificationScreen(),
+                              ),
+                            );
+                          },
                           child: ClipOval(
                             child: BackdropFilter(
                               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),

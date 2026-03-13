@@ -8,10 +8,15 @@ import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'core/constants/app_colors.dart';
 import 'presentation/screens/splash/splash_screen.dart';
+import 'data/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   tz.initializeTimeZones();
+
+  // Initialize notifications and schedule default daily reminder at 8:00 AM
+  await NotificationService.initialize();
+  await NotificationService.scheduleDailyReminder(hour: 8, minute: 0);
 
   await Supabase.initialize(
     url: 'https://kbwpnxdrdevaytwgyrte.supabase.co',

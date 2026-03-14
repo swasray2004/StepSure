@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:gait_rehab/core/constants/app_colors.dart';
+import 'package:gait_rehab/core/constants/app_theme.dart';
+import 'package:gait_rehab/core/widgets/app_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
+
 import 'report_detail_screen.dart';
-import '../../core/widgets/risk_badge.dart';
 
 class ReportsListScreen extends StatefulWidget {
   const ReportsListScreen({super.key});
@@ -49,9 +50,9 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
         headerSliverBuilder: (_, __) => [
           SliverToBoxAdapter(
             child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: const BorderRadius.only(
+              decoration: const BoxDecoration(
+                gradient: AppColors.primaryGradient,
+                borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(32),
                   bottomRight: Radius.circular(32),
                 ),
@@ -156,9 +157,9 @@ class _ReportCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: AppColors.cardBg,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.primary),
+          border: Border.all(color: AppColors.border),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.03),
@@ -202,11 +203,11 @@ class _ReportCard extends StatelessWidget {
                   ),
                 ),
                 const Icon(Icons.arrow_forward_ios_rounded,
-                    size: 14, color: AppColors.textSecondary),
+                    size: 14, color: AppColors.textTertiary),
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: AppColors.primary, height: 1),
+            const Divider(color: AppColors.border, height: 1),
             const SizedBox(height: 14),
             Row(
               children: [
@@ -259,7 +260,7 @@ class _MiniStat extends StatelessWidget {
                 color: color, fontWeight: FontWeight.w800, fontSize: 13)),
         Text(label,
             style:
-                const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                const TextStyle(fontSize: 11, color: AppColors.textTertiary)),
       ],
     );
   }

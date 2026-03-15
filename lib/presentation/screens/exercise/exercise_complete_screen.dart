@@ -16,7 +16,7 @@ class _C {
 
   static List<BoxShadow> get glow => [
         BoxShadow(
-            color: teal.withOpacity(0.35), blurRadius: 24, spreadRadius: 2),
+            color: teal.withValues(alpha: 0.35), blurRadius: 24, spreadRadius: 2),
       ];
 }
 
@@ -91,7 +91,7 @@ class _ExerciseCompleteScreenState extends State<ExerciseCompleteScreen>
                     height: 140,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _C.tealDk.withOpacity(0.3),
+                      color: _C.tealDk.withValues(alpha: 0.3),
                       boxShadow: _C.glow,
                     ),
                     child: const Center(
@@ -123,7 +123,7 @@ class _ExerciseCompleteScreenState extends State<ExerciseCompleteScreen>
                   decoration: BoxDecoration(
                     color: _C.surface,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _C.teal.withOpacity(0.2)),
+                    border: Border.all(color: _C.teal.withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -156,7 +156,7 @@ class _ExerciseCompleteScreenState extends State<ExerciseCompleteScreen>
                   decoration: BoxDecoration(
                     color: _C.surface,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: _C.teal.withOpacity(0.15)),
+                    border: Border.all(color: _C.teal.withValues(alpha: 0.15)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,9 +194,9 @@ class _ExerciseCompleteScreenState extends State<ExerciseCompleteScreen>
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: _C.tealDk.withOpacity(0.2),
+                    color: _C.tealDk.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: _C.teal.withOpacity(0.2)),
+                    border: Border.all(color: _C.teal.withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     children: [
@@ -235,7 +235,7 @@ class _ExerciseCompleteScreenState extends State<ExerciseCompleteScreen>
                       backgroundColor: _C.teal,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      shadowColor: _C.teal.withOpacity(0.5),
+                      shadowColor: _C.teal.withValues(alpha: 0.5),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16)),
                     ),
@@ -259,7 +259,7 @@ class _ExerciseCompleteScreenState extends State<ExerciseCompleteScreen>
                     style: OutlinedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16)),
-                      side: BorderSide(color: _C.teal.withOpacity(0.4)),
+                      side: BorderSide(color: _C.teal.withValues(alpha: 0.4)),
                     ),
                   ),
                 ),
@@ -306,7 +306,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         width: 1,
         height: 50,
-        color: _C.teal.withOpacity(0.15),
+        color: _C.teal.withValues(alpha: 0.15),
       );
 }
 
@@ -329,7 +329,7 @@ class _ExerciseRow extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: _C.teal.withOpacity(0.15),
+                  color: _C.teal.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: Center(

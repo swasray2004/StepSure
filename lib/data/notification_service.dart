@@ -15,30 +15,31 @@ class NotificationService {
   }
 
   static Future<void> scheduleDailyReminder({
-    required int hour,
-    required int minute,
-  }) async {
-    await _plugin.cancelAll();
-    await _plugin.zonedSchedule(
-      0,
-      '🚶 Time for your Gait Session!',
-      "Let's check your recovery progress today.",
-      _nextInstanceOfTime(hour, minute),
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'rehab_reminder',
-          'Rehab Reminders',
-          importance: Importance.high,
-          priority: Priority.high,
-        ),
-        iOS: DarwinNotificationDetails(),
+  required int hour,
+  required int minute,
+}) async {
+  await _plugin.cancelAll();
+
+  await _plugin.zonedSchedule(
+    0,
+    '🚶 Time for your Gait Session!',
+    "Let's check your recovery progress today.",
+    _nextInstanceOfTime(hour, minute),
+    const NotificationDetails(
+      android: AndroidNotificationDetails(
+        'rehab_reminder',
+        'Rehab Reminders',
+        importance: Importance.high,
+        priority: Priority.high,
       ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-    );
-  }
+      iOS: DarwinNotificationDetails(),
+    ),
+    androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    uiLocalNotificationDateInterpretation:
+        UILocalNotificationDateInterpretation.absoluteTime,
+    matchDateTimeComponents: DateTimeComponents.time,
+  );
+}
 
   static tz.TZDateTime _nextInstanceOfTime(int hour, int minute) {
     final now = tz.TZDateTime.now(tz.local);

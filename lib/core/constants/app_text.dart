@@ -85,4 +85,11 @@ class AppText {
     fontWeight: FontWeight.w500,
     color: Color(0xCCFFFFFF),
   );
+
+  static const sectionTitle = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 16,
+    fontWeight: FontWeight.w700,
+    color: AppColors.textDark,
+  );
 }

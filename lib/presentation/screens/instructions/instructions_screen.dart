@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
-import 'package:gait_rehab/core/constants/app_colors.dart';
 import '../recording/recording_screen.dart';
 
 class InstructionsScreen extends StatefulWidget {
@@ -192,8 +191,8 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      step.gradientA.withOpacity(0.18 * _bgAnim.value),
-                      step.gradientA.withOpacity(0),
+                      step.gradientA.withValues(alpha: 0.18 * _bgAnim.value),
+                      step.gradientA.withValues(alpha: 0),
                     ],
                   ),
                 ),
@@ -212,8 +211,8 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    step.gradientB.withOpacity(0.12),
-                    step.gradientB.withOpacity(0),
+                    step.gradientB.withValues(alpha: 0.12),
+                    step.gradientB.withValues(alpha: 0),
                   ],
                 ),
               ),
@@ -244,10 +243,11 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 14, vertical: 7),
                             decoration: BoxDecoration(
-                              color: step.gradientA.withOpacity(0.12),
+                              color: step.gradientA.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                  color: step.gradientA.withOpacity(0.25)),
+                                  color:
+                                      step.gradientA.withValues(alpha: 0.25)),
                             ),
                             child: Text(
                               '${_currentStep + 1} / ${_steps.length}',
@@ -358,17 +358,19 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 14, vertical: 12),
                               decoration: BoxDecoration(
-                                color: step.gradientA.withOpacity(0.07),
+                                color: step.gradientA.withValues(alpha: 0.07),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                    color: step.gradientA.withOpacity(0.20)),
+                                    color:
+                                        step.gradientA.withValues(alpha: 0.20)),
                               ),
                               child: Row(
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
-                                      color: step.gradientA.withOpacity(0.15),
+                                      color: step.gradientA
+                                          .withValues(alpha: 0.15),
                                       borderRadius: BorderRadius.circular(9),
                                     ),
                                     child: Icon(step.tipIcon,
@@ -380,7 +382,8 @@ class _InstructionsScreenState extends State<InstructionsScreen>
                                       step.tip,
                                       style: TextStyle(
                                         fontSize: 12.5,
-                                        color: step.gradientA.withOpacity(0.90),
+                                        color: step.gradientA
+                                            .withValues(alpha: 0.90),
                                         fontWeight: FontWeight.w600,
                                         height: 1.4,
                                       ),
@@ -454,19 +457,19 @@ class _IllustrationCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         gradient: LinearGradient(
           colors: [
-            step.gradientA.withOpacity(0.15),
-            step.gradientB.withOpacity(0.08),
+            step.gradientA.withValues(alpha: 0.15),
+            step.gradientB.withValues(alpha: 0.08),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         border: Border.all(
-          color: step.gradientA.withOpacity(0.20),
+          color: step.gradientA.withValues(alpha: 0.20),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: step.gradientA.withOpacity(0.12),
+            color: step.gradientA.withValues(alpha: 0.12),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -483,7 +486,7 @@ class _IllustrationCard extends StatelessWidget {
               height: 100,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: step.gradientA.withOpacity(0.10),
+                color: step.gradientA.withValues(alpha: 0.10),
               ),
             ),
           ),
@@ -495,7 +498,7 @@ class _IllustrationCard extends StatelessWidget {
               height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: step.gradientB.withOpacity(0.08),
+                color: step.gradientB.withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -509,7 +512,7 @@ class _IllustrationCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 90,
                 fontWeight: FontWeight.w900,
-                color: step.gradientA.withOpacity(0.07),
+                color: step.gradientA.withValues(alpha: 0.07),
                 letterSpacing: -4,
                 height: 1,
               ),
@@ -540,7 +543,7 @@ class _IllustrationCard extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: step.gradientA.withOpacity(0.40),
+                          color: step.gradientA.withValues(alpha: 0.40),
                           blurRadius: 24,
                           offset: const Offset(0, 8),
                         ),
@@ -579,7 +582,7 @@ class _SegmentedProgress extends StatelessWidget {
             height: 4,
             margin: EdgeInsets.only(right: i < total - 1 ? 5 : 0),
             decoration: BoxDecoration(
-              color: isDone ? color : color.withOpacity(0.15),
+              color: isDone ? color : color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -619,7 +622,7 @@ class _NextButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: gradientA.withOpacity(0.38),
+              color: gradientA.withValues(alpha: 0.38),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -677,7 +680,7 @@ class _GlassButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),

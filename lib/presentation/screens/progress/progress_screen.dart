@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../../data/supabase_service.dart';
 import '../../../domain/models/session_model.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../widgets/rehab_chatbot.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -34,8 +35,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading)
+    if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     final spots = _sessions
         .asMap()
@@ -45,6 +47,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => showRehabChatbot(context, _sessions),
+        backgroundColor: const Color(0xFF00A890),
+        child: const Icon(Icons.smart_toy_rounded, color: Colors.white),
+      ),
       // ── Replaced AppBar with a custom gradient header ──
       body: Column(
         children: [
@@ -70,7 +77,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       height: 160,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.07),
+                        color: Colors.white.withValues(alpha: 0.07),
                       ),
                     ),
                   ),
@@ -82,7 +89,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       height: 70,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.05),
+                        color: Colors.white.withValues(alpha: 0.05),
                       ),
                     ),
                   ),
@@ -93,15 +100,16 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       children: [
                         Row(
                           children: [
-                            Spacer(),
+                            const Spacer(),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.18),
+                                color: Colors.white.withValues(alpha: 0.18),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                    color: Colors.white.withOpacity(0.25)),
+                                    color:
+                                        Colors.white.withValues(alpha: 0.25)),
                               ),
                               child: const Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -205,7 +213,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                             LineChartData(
                               minY: 0,
                               maxY: 100,
-                              gridData: FlGridData(
+                              gridData: const FlGridData(
                                   show: true, horizontalInterval: 20),
                               borderData: FlBorderData(show: false),
                               titlesData: FlTitlesData(
@@ -227,9 +235,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                                         style: const TextStyle(fontSize: 11)),
                                   ),
                                 ),
-                                topTitles: AxisTitles(
+                                topTitles: const AxisTitles(
                                     sideTitles: SideTitles(showTitles: false)),
-                                rightTitles: AxisTitles(
+                                rightTitles: const AxisTitles(
                                     sideTitles: SideTitles(showTitles: false)),
                               ),
                               lineBarsData: [
@@ -243,13 +251,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
                                     ],
                                   ),
                                   barWidth: 3,
-                                  dotData: FlDotData(show: true),
+                                  dotData: const FlDotData(show: true),
                                   belowBarData: BarAreaData(
                                     show: true,
                                     gradient: LinearGradient(
                                       colors: [
-                                        AppColors.primary.withOpacity(0.3),
-                                        AppColors.secondary.withOpacity(0.05),
+                                        AppColors.primary
+                                            .withValues(alpha: 0.3),
+                                        AppColors.secondary
+                                            .withValues(alpha: 0.05),
                                       ],
                                       begin: Alignment.topCenter,
                                       end: Alignment.bottomCenter,
@@ -277,7 +287,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8)
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06), blurRadius: 8)
           ],
         ),
         child: Column(

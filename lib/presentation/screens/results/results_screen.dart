@@ -8,6 +8,9 @@ import '../../core/widgets/score_ring.dart';
 import '../../core/widgets/risk_badge.dart';
 import '../home/metric_card.dart';
 import '../instructions/primary_button.dart';
+import 'package:provider/provider.dart';
+import 'package:gait_rehab/presentation/providers/auth_provider.dart';
+import 'package:gait_rehab/domain/report_generator.dart';
 
 class ResultsScreen extends StatefulWidget {
   final Map<String, dynamic> session;
@@ -103,8 +106,21 @@ class _ResultsScreenState extends State<ResultsScreen>
     setState(() => _exportingPdf = true);
     try {
       final sessionModel = SessionModel.fromMap(widget.session);
+      // Fetch patient name from profile
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final profile = await authProvider.getProfile();
+      final patientName =
+          (profile?['full_name'] as String?)?.trim().isNotEmpty == true
+              ? profile!['full_name']
+              : 'Patient';
+
+      // Generate ReportModel from current and previous session if needed
+      final reportModel = await ReportGenerator.generate(current: sessionModel);
       await PdfExporter.exportReport(
-          session: sessionModel, report: widget.report);
+        session: sessionModel,
+        report: reportModel,
+        patientName: patientName,
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -221,10 +237,10 @@ class _ResultsScreenState extends State<ResultsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // ── Metrics ──────────────────────────────────────────
-                    _SectionLabel(
+                    const _SectionLabel(
                         title: 'Gait Metrics',
                         icon: Icons.analytics_rounded,
-                        color: const Color(0xFF0A7EA4)),
+                        color: Color(0xFF0A7EA4)),
                     const SizedBox(height: 14),
                     _MetricsGrid(
                       symmetry: symmetry,
@@ -236,20 +252,20 @@ class _ResultsScreenState extends State<ResultsScreen>
                     const SizedBox(height: 22),
 
                     // ── AI Summary ───────────────────────────────────────
-                    _SectionLabel(
+                    const _SectionLabel(
                         title: 'AI Analysis',
                         icon: Icons.auto_awesome_rounded,
-                        color: const Color(0xFF6C63FF)),
+                        color: Color(0xFF6C63FF)),
                     const SizedBox(height: 14),
                     _SummaryCard(summary: summary),
 
                     // ── Abnormalities ────────────────────────────────────
                     if (abnormalities.isNotEmpty) ...[
                       const SizedBox(height: 28),
-                      _SectionLabel(
+                      const _SectionLabel(
                           title: 'Identified Issues',
                           icon: Icons.warning_amber_rounded,
-                          color: const Color(0xFFFF6B6B)),
+                          color: Color(0xFFFF6B6B)),
                       const SizedBox(height: 14),
                       ...abnormalities
                           .asMap()
@@ -260,10 +276,10 @@ class _ResultsScreenState extends State<ResultsScreen>
                     // ── Exercises ────────────────────────────────────────
                     if (suggestions.isNotEmpty) ...[
                       const SizedBox(height: 28),
-                      _SectionLabel(
+                      const _SectionLabel(
                           title: 'Recommended Exercises',
                           icon: Icons.fitness_center_rounded,
-                          color: const Color(0xFF00C9AA)),
+                          color: Color(0xFF00C9AA)),
                       const SizedBox(height: 14),
                       ...suggestions.asMap().entries.map((e) =>
                           _ExerciseItem(text: e.value, number: e.key + 1)),
@@ -342,9 +358,9 @@ class _HeroSection extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            scoreColor.withOpacity(0.92),
-            scoreColor.withOpacity(0.70),
-            const Color(0xFF0A7EA4).withOpacity(0.85),
+            scoreColor.withValues(alpha: 0.92),
+            scoreColor.withValues(alpha: 0.70),
+            const Color(0xFF0A7EA4).withValues(alpha: 0.85),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -361,7 +377,7 @@ class _HeroSection extends StatelessWidget {
                   height: 240,
                   decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.06)))),
+                      color: Colors.white.withValues(alpha: 0.06)))),
           Positioned(
               bottom: 30,
               left: -40,
@@ -370,7 +386,7 @@ class _HeroSection extends StatelessWidget {
                   height: 160,
                   decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.05)))),
+                      color: Colors.white.withValues(alpha: 0.05)))),
           Positioned(
               top: 100,
               right: 20,
@@ -379,7 +395,7 @@ class _HeroSection extends StatelessWidget {
                   height: 60,
                   decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.04)))),
+                      color: Colors.white.withValues(alpha: 0.04)))),
 
           SafeArea(
             bottom: false,
@@ -394,10 +410,10 @@ class _HeroSection extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 7),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.18),
+                          color: Colors.white.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(20),
-                          border:
-                              Border.all(color: Colors.white.withOpacity(0.25)),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.25)),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
@@ -417,10 +433,10 @@ class _HeroSection extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 7),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.15),
+                          color: Colors.white.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(20),
-                          border:
-                              Border.all(color: Colors.white.withOpacity(0.20)),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.20)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -459,7 +475,7 @@ class _HeroSection extends StatelessWidget {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.white.withOpacity(0.15),
+                                color: Colors.white.withValues(alpha: 0.15),
                                 blurRadius: 30,
                                 spreadRadius: 4,
                               ),
@@ -476,7 +492,7 @@ class _HeroSection extends StatelessWidget {
                               painter: _ScoreArcPainter(
                                 progress: scoreArcAnim.value * (score / 100),
                                 color: Colors.white,
-                                bgColor: Colors.white.withOpacity(0.18),
+                                bgColor: Colors.white.withValues(alpha: 0.18),
                                 strokeWidth: 13,
                               ),
                             ),
@@ -511,7 +527,7 @@ class _HeroSection extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 3),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.20),
+                                color: Colors.white.withValues(alpha: 0.20),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -591,9 +607,9 @@ class _HeroChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.14),
+        color: Colors.white.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withOpacity(0.22)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -684,7 +700,7 @@ class _SectionLabel extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.12),
+            color: color.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: color, size: 17),
@@ -818,7 +834,7 @@ class _MetricTileState extends State<_MetricTile>
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: widget.color.withOpacity(0.10),
+              color: widget.color.withValues(alpha: 0.10),
               blurRadius: 20,
               offset: const Offset(0, 6),
             ),
@@ -831,7 +847,7 @@ class _MetricTileState extends State<_MetricTile>
             Container(
               padding: const EdgeInsets.all(7),
               decoration: BoxDecoration(
-                color: widget.color.withOpacity(0.12),
+                color: widget.color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(widget.icon, color: widget.color, size: 17),
@@ -883,10 +899,10 @@ class _SummaryCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(22),
         border:
-            Border(left: BorderSide(color: const Color(0xFF6C63FF), width: 4)),
+            const Border(left: BorderSide(color: Color(0xFF6C63FF), width: 4)),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6C63FF).withOpacity(0.08),
+            color: const Color(0xFF6C63FF).withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, 6),
           ),
@@ -898,7 +914,7 @@ class _SummaryCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: const Color(0xFF6C63FF).withOpacity(0.10),
+              color: const Color(0xFF6C63FF).withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.auto_awesome_rounded,
@@ -931,9 +947,10 @@ class _IssueItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFFF6B6B).withOpacity(0.06),
+        color: const Color(0xFFFF6B6B).withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFFF6B6B).withOpacity(0.22)),
+        border:
+            Border.all(color: const Color(0xFFFF6B6B).withValues(alpha: 0.22)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -942,7 +959,7 @@ class _IssueItem extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: const Color(0xFFFF6B6B).withOpacity(0.12),
+              color: const Color(0xFFFF6B6B).withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(9),
             ),
             child: const Center(
@@ -977,9 +994,10 @@ class _ExerciseItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF00C9AA).withOpacity(0.06),
+        color: const Color(0xFF00C9AA).withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF00C9AA).withOpacity(0.22)),
+        border:
+            Border.all(color: const Color(0xFF00C9AA).withValues(alpha: 0.22)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1038,12 +1056,12 @@ class _RiskCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: riskColor.withOpacity(0.07),
+        color: riskColor.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: riskColor.withOpacity(0.25)),
+        border: Border.all(color: riskColor.withValues(alpha: 0.25)),
         boxShadow: [
           BoxShadow(
-            color: riskColor.withOpacity(0.08),
+            color: riskColor.withValues(alpha: 0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -1055,7 +1073,7 @@ class _RiskCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: riskColor.withOpacity(0.14),
+              color: riskColor.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -1115,7 +1133,7 @@ class _ExportButton extends StatelessWidget {
               ? []
               : [
                   BoxShadow(
-                    color: const Color(0xFF0A7EA4).withOpacity(0.35),
+                    color: const Color(0xFF0A7EA4).withValues(alpha: 0.35),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -1164,10 +1182,11 @@ class _HomeButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFF0A7EA4).withOpacity(0.30)),
+          border: Border.all(
+              color: const Color(0xFF0A7EA4).withValues(alpha: 0.30)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),

@@ -1,9 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:io';
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:gait_rehab/core/constants/app_colors.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
@@ -14,7 +12,6 @@ import '../../../data/supabase_service.dart';
 import '../../../domain/score_calculator.dart';
 import '../../../domain/report_generator.dart';
 import '../../../domain/models/session_model.dart';
-import '../instructions/primary_button.dart';
 import '../results/results_screen.dart';
 
 class UploadScreen extends StatefulWidget {
@@ -266,9 +263,9 @@ class _UploadScreenState extends State<UploadScreen>
       final sessionWithVideo =
           session.copyWith(id: sessionId, videoUrl: videoUrl);
       final prev = await _supabase.getLastSession();
-      final report =
-          ReportGenerator.generate(current: sessionWithVideo, previous: prev);
-      await _supabase.saveReport(sessionId: sessionId, report: report);
+      final report = await ReportGenerator.generate(
+          current: sessionWithVideo, previous: prev);
+      await _supabase.saveReport(sessionId: sessionId, report: report.toJson());
 
       if (mounted) {
         Navigator.pushReplacement(
@@ -276,7 +273,7 @@ class _UploadScreenState extends State<UploadScreen>
           MaterialPageRoute(
             builder: (_) => ResultsScreen(
               session: sessionWithVideo.toMap(),
-              report: report,
+              report: report.toJson(),
               feedbackMessages: feedbackMessages,
             ),
           ),
@@ -285,7 +282,7 @@ class _UploadScreenState extends State<UploadScreen>
     } catch (e) {
       final errorMsg = e.toString().replaceFirst('Exception: ', '') +
           (frameLogs.isNotEmpty
-              ? '\n\nFrame logs:\n' + frameLogs.take(10).join('\n')
+              ? '\n\nFrame logs:\n${frameLogs.take(10).join('\n')}'
               : '');
       debugPrint('[ANALYZE ERROR] $errorMsg');
       if (mounted) {
@@ -373,9 +370,9 @@ class _UploadScreenState extends State<UploadScreen>
                     child: _ErrorCard(message: _errorMessage!),
                   ),
                 ),
-              SliverToBoxAdapter(
+              const SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 0),
+                  padding: EdgeInsets.fromLTRB(20, 28, 20, 0),
                   child: _RequirementsCard(),
                 ),
               ),
@@ -417,7 +414,7 @@ class _UploadScreenState extends State<UploadScreen>
                   height: 140,
                   decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.07))),
+                      color: Colors.white.withValues(alpha: 0.07))),
             ),
             Positioned(
               bottom: 10,
@@ -427,7 +424,7 @@ class _UploadScreenState extends State<UploadScreen>
                   height: 60,
                   decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.05))),
+                      color: Colors.white.withValues(alpha: 0.05))),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 8, 16, 24),
@@ -446,10 +443,10 @@ class _UploadScreenState extends State<UploadScreen>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.18),
+                          color: Colors.white.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(20),
-                          border:
-                              Border.all(color: Colors.white.withOpacity(0.25)),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.25)),
                         ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
@@ -564,7 +561,7 @@ class _AnalyzingOverlay extends StatelessWidget {
                 height: 280,
                 decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.07)))),
+                    color: Colors.white.withValues(alpha: 0.07)))),
         Positioned(
             bottom: -60,
             left: -60,
@@ -573,7 +570,7 @@ class _AnalyzingOverlay extends StatelessWidget {
                 height: 220,
                 decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.05)))),
+                    color: Colors.white.withValues(alpha: 0.05)))),
 
         // Main content (scrollable)
         SafeArea(
@@ -607,23 +604,23 @@ class _AnalyzingOverlay extends StatelessWidget {
                           decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               border: Border.all(
-                                  color: Colors.white.withOpacity(0.20),
+                                  color: Colors.white.withValues(alpha: 0.20),
                                   width: 2))),
                       Container(
                           width: 128,
                           height: 128,
                           decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white.withOpacity(0.10),
+                              color: Colors.white.withValues(alpha: 0.10),
                               border: Border.all(
-                                  color: Colors.white.withOpacity(0.30),
+                                  color: Colors.white.withValues(alpha: 0.30),
                                   width: 1.5))),
                       Container(
                           width: 96,
                           height: 96,
                           decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white.withOpacity(0.18)),
+                              color: Colors.white.withValues(alpha: 0.18)),
                           child: Center(
                               child: SizedBox(
                                   width: 72,
@@ -670,7 +667,7 @@ class _AnalyzingOverlay extends StatelessWidget {
                       Container(
                           height: 10,
                           decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
+                              color: Colors.white.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(12))),
                       AnimatedFractionallySizedBox(
                         duration: const Duration(milliseconds: 400),
@@ -685,9 +682,9 @@ class _AnalyzingOverlay extends StatelessWidget {
                                 begin: Alignment(shimmerAnim.value - 1, 0),
                                 end: Alignment(shimmerAnim.value + 1, 0),
                                 colors: [
-                                  Colors.white.withOpacity(0.5),
-                                  Colors.white.withOpacity(0.95),
-                                  Colors.white.withOpacity(0.5),
+                                  Colors.white.withValues(alpha: 0.5),
+                                  Colors.white.withValues(alpha: 0.95),
+                                  Colors.white.withValues(alpha: 0.5),
                                 ],
                               ),
                             ),
@@ -715,9 +712,10 @@ class _AnalyzingOverlay extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.12),
+                    color: Colors.white.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withOpacity(0.20)),
+                    border:
+                        Border.all(color: Colors.white.withValues(alpha: 0.20)),
                   ),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
@@ -762,8 +760,9 @@ class _FeedbackStack extends StatelessWidget {
     }
     if (lower.contains('symmetr')) return Icons.balance_rounded;
     if (lower.contains('stride')) return Icons.straighten_rounded;
-    if (lower.contains('posture') || lower.contains('upright'))
+    if (lower.contains('posture') || lower.contains('upright')) {
       return Icons.accessibility_new_rounded;
+    }
     return Icons.tips_and_updates_rounded;
   }
 
@@ -872,18 +871,19 @@ class _FeedbackBubbleState extends State<_FeedbackBubble>
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 // Glassmorphic white with subtle tint
-                color: Colors.white.withOpacity(widget.isLatest ? 0.22 : 0.14),
+                color: Colors.white
+                    .withValues(alpha: widget.isLatest ? 0.22 : 0.14),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: widget.isLatest
-                      ? widget.color.withOpacity(0.50)
-                      : Colors.white.withOpacity(0.20),
+                      ? widget.color.withValues(alpha: 0.50)
+                      : Colors.white.withValues(alpha: 0.20),
                   width: widget.isLatest ? 1.5 : 1.0,
                 ),
                 boxShadow: widget.isLatest
                     ? [
                         BoxShadow(
-                          color: widget.color.withOpacity(0.25),
+                          color: widget.color.withValues(alpha: 0.25),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
                         ),
@@ -897,7 +897,7 @@ class _FeedbackBubbleState extends State<_FeedbackBubble>
                     width: 34,
                     height: 34,
                     decoration: BoxDecoration(
-                      color: widget.color.withOpacity(0.25),
+                      color: widget.color.withValues(alpha: 0.25),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(widget.icon, color: widget.color, size: 17),
@@ -960,11 +960,11 @@ class _StepIndicators extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: isActive
-                  ? Colors.white.withOpacity(0.18)
-                  : Colors.white.withOpacity(0.08),
+                  ? Colors.white.withValues(alpha: 0.18)
+                  : Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(14),
               border: isActive
-                  ? Border.all(color: Colors.white.withOpacity(0.35))
+                  ? Border.all(color: Colors.white.withValues(alpha: 0.35))
                   : null,
             ),
             child: Row(
@@ -975,10 +975,10 @@ class _StepIndicators extends StatelessWidget {
                   height: 34,
                   decoration: BoxDecoration(
                     color: isDone
-                        ? Colors.white.withOpacity(0.90)
+                        ? Colors.white.withValues(alpha: 0.90)
                         : isActive
-                            ? Colors.white.withOpacity(0.25)
-                            : Colors.white.withOpacity(0.10),
+                            ? Colors.white.withValues(alpha: 0.25)
+                            : Colors.white.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Center(
@@ -988,7 +988,7 @@ class _StepIndicators extends StatelessWidget {
                         : Icon(icons[i],
                             color: isActive
                                 ? Colors.white
-                                : Colors.white.withOpacity(0.5),
+                                : Colors.white.withValues(alpha: 0.5),
                             size: 17),
                   ),
                 ),
@@ -1007,7 +1007,7 @@ class _StepIndicators extends StatelessWidget {
                       )),
                 ),
                 if (isActive)
-                  _PulsingDot(color: Colors.white)
+                  const _PulsingDot(color: Colors.white)
                 else if (isDone)
                   const Icon(Icons.check_circle_rounded,
                       color: Colors.white70, size: 16),
@@ -1057,7 +1057,7 @@ class _PulsingDotState extends State<_PulsingDot>
         width: 8,
         height: 8,
         decoration: BoxDecoration(
-          color: widget.color.withOpacity(_anim.value),
+          color: widget.color.withValues(alpha: _anim.value),
           shape: BoxShape.circle,
         ),
       ),
@@ -1107,12 +1107,12 @@ class _DropZoneEmptyState extends State<_DropZoneEmpty>
           borderRadius: BorderRadius.circular(28),
           boxShadow: [
             BoxShadow(
-                color: const Color(0xFF00A890).withOpacity(0.10),
+                color: const Color(0xFF00A890).withValues(alpha: 0.10),
                 blurRadius: 24,
                 offset: const Offset(0, 8)),
           ],
           border: Border.all(
-              color: const Color(0xFF00A890).withOpacity(0.25),
+              color: const Color(0xFF00A890).withValues(alpha: 0.25),
               width: 1.5,
               strokeAlign: BorderSide.strokeAlignInside),
         ),
@@ -1141,8 +1141,8 @@ class _DropZoneEmptyState extends State<_DropZoneEmpty>
                           borderRadius: BorderRadius.circular(22),
                           boxShadow: [
                             BoxShadow(
-                                color:
-                                    const Color(0xFF00A890).withOpacity(0.35),
+                                color: const Color(0xFF00A890)
+                                    .withValues(alpha: 0.35),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8))
                           ],
@@ -1206,12 +1206,12 @@ class _DropZoneSelected extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-              color: const Color(0xFF0A7EA4).withOpacity(0.10),
+              color: const Color(0xFF0A7EA4).withValues(alpha: 0.10),
               blurRadius: 24,
               offset: const Offset(0, 8))
         ],
         border: Border.all(
-            color: const Color(0xFF0A7EA4).withOpacity(0.25), width: 1.5),
+            color: const Color(0xFF0A7EA4).withValues(alpha: 0.25), width: 1.5),
       ),
       child: Row(
         children: [
@@ -1263,7 +1263,7 @@ class _DropZoneSelected extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-                color: const Color(0xFF00A890).withOpacity(0.12),
+                color: const Color(0xFF00A890).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10)),
             child: const Icon(Icons.check_rounded,
                 color: Color(0xFF00A890), size: 20),
@@ -1284,7 +1284,7 @@ class _MetaChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-          color: const Color(0xFF0A7EA4).withOpacity(0.07),
+          color: const Color(0xFF0A7EA4).withValues(alpha: 0.07),
           borderRadius: BorderRadius.circular(8)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1322,7 +1322,7 @@ class _RequirementsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 16,
               offset: const Offset(0, 4))
         ],
@@ -1334,7 +1334,7 @@ class _RequirementsCard extends StatelessWidget {
             Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                    color: const Color(0xFF0A7EA4).withOpacity(0.10),
+                    color: const Color(0xFF0A7EA4).withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(10)),
                 child: const Icon(Icons.checklist_rounded,
                     color: Color(0xFF0A7EA4), size: 18)),
@@ -1357,7 +1357,7 @@ class _RequirementsCard extends StatelessWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                        color: const Color(0xFF00A890).withOpacity(0.08),
+                        color: const Color(0xFF00A890).withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(10)),
                     child: Icon(item.$1,
                         color: const Color(0xFF00A890), size: 17)),
@@ -1405,7 +1405,7 @@ class _ActionButton extends StatelessWidget {
                 color: (hasVideo
                         ? const Color(0xFF0A7EA4)
                         : const Color(0xFF00A890))
-                    .withOpacity(0.35),
+                    .withValues(alpha: 0.35),
                 blurRadius: 20,
                 offset: const Offset(0, 8))
           ],
@@ -1444,16 +1444,17 @@ class _ErrorCard extends StatelessWidget {
       constraints: const BoxConstraints(maxHeight: 200),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-          color: const Color(0xFFFF6B6B).withOpacity(0.08),
+          color: const Color(0xFFFF6B6B).withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFFFF6B6B).withOpacity(0.30))),
+          border: Border.all(
+              color: const Color(0xFFFF6B6B).withValues(alpha: 0.30))),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                  color: const Color(0xFFFF6B6B).withOpacity(0.15),
+                  color: const Color(0xFFFF6B6B).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8)),
               child: const Icon(Icons.error_outline_rounded,
                   color: Color(0xFFFF6B6B), size: 18)),
@@ -1478,7 +1479,7 @@ class _DashedBorderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF00A890).withOpacity(0.30)
+      ..color = const Color(0xFF00A890).withValues(alpha: 0.30)
       ..strokeWidth = 1.5
       ..style = PaintingStyle.stroke;
 

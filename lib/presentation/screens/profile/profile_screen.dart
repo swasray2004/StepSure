@@ -1,8 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:gait_rehab/core/constants/app_theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:gait_rehab/core/constants/app_colors.dart';
 import '../auth/login_screen.dart';
+
+// Minimal StatRow widget for displaying label-value pairs
+class StatRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const StatRow({required this.label, required this.value, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w400)),
+        ],
+      ),
+    );
+  }
+}
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -89,13 +110,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final name = _profile?['full_name'] as String? ?? 'Patient';
+    String name = (_profile?['full_name'] as String?)?.trim() ?? '';
+    if (name.isEmpty) {
+      // Try to use email prefix as a fallback if available
+      final email = _profile?['email'] as String? ??
+          _client.auth.currentUser?.email ??
+          '';
+      if (email.contains('@')) {
+        name = email.split('@')[0];
+      } else {
+        name = 'Patient';
+      }
+    }
+    final email =
+        _profile?['email'] as String? ?? _client.auth.currentUser?.email ?? '';
     final age = _profile?['age'] as int?;
+    final gender = _profile?['gender'] as String? ?? '--';
     final affectedSide = _profile?['affected_side'] as String? ?? '--';
     final strokeDateStr = _profile?['stroke_date'] as String?;
     final strokeDate =
         strokeDateStr != null ? DateTime.tryParse(strokeDateStr) : null;
-    final email = _client.auth.currentUser?.email ?? '';
+    final phone = _profile?['phone'] as String? ?? '--';
+    final address = _profile?['address'] as String? ?? '--';
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -107,7 +143,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SliverToBoxAdapter(
                   child: Container(
                     decoration: const BoxDecoration(
-                      gradient: AppColors.primaryGradient,
+                      gradient: LinearGradient(
+                        colors: [AppColors.primary, AppColors.secondary],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.only(
                         bottomLeft: Radius.circular(32),
                         bottomRight: Radius.circular(32),
@@ -116,60 +156,88 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     padding: const EdgeInsets.fromLTRB(24, 60, 24, 32),
                     child: Column(
                       children: [
-                        // Avatar
+                        // Glass-like Avatar
                         Container(
-                          width: 80,
-                          height: 80,
+                          width: 90,
+                          height: 90,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.25),
+                            color: Colors.white.withValues(alpha: 0.18),
                             shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.35),
+                              width: 1.2,
+                            ),
                           ),
                           child: Center(
                             child: Text(
                               name.isNotEmpty ? name[0].toUpperCase() : 'P',
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 34,
-                                fontWeight: FontWeight.w800,
+                                fontSize: 38,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -1.2,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 14),
-                        Text(name,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 16),
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            fontFamily: 'Nunito',
+                            letterSpacing: -0.8,
+                          ),
+                        ),
                         const SizedBox(height: 4),
-                        Text(email,
-                            style: const TextStyle(
-                                color: Colors.white70, fontSize: 13)),
-
-                        const SizedBox(height: 24),
-
+                        Text(
+                          email,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(height: 28),
                         // Stats row
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _StatPill(
-                              label: 'Sessions',
-                              value: '${_stats?['sessions'] ?? 0}',
-                            ),
-                            Container(
-                                width: 1, height: 36, color: Colors.white30),
-                            _StatPill(
-                              label: 'Avg Score',
-                              value:
-                                  '${(_stats?['avg_score'] as double? ?? 0).toStringAsFixed(1)}',
-                            ),
-                            Container(
-                                width: 1, height: 36, color: Colors.white30),
-                            _StatPill(
-                              label: 'Minutes',
-                              value: '${_stats?['total_minutes'] ?? 0}',
-                            ),
-                          ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 18),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _StatPill(
+                                label: 'Sessions',
+                                value: '${_stats?['sessions'] ?? 0}',
+                              ),
+                              Container(
+                                  width: 1, height: 36, color: Colors.white30),
+                              _StatPill(
+                                label: 'Avg Score',
+                                value: (_stats?['avg_score'] as double? ?? 0)
+                                    .toStringAsFixed(1),
+                              ),
+                              Container(
+                                  width: 1, height: 36, color: Colors.white30),
+                              _StatPill(
+                                label: 'Minutes',
+                                value: '${_stats?['total_minutes'] ?? 0}',
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -190,23 +258,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           icon: Icons.person_outline_rounded,
                           children: [
                             StatRow(label: 'Full Name', value: name),
-                            const Divider(color: AppColors.border),
+                            Divider(
+                                color:
+                                    AppColors.danger.withValues(alpha: 0.15)),
+                            StatRow(label: 'Email', value: email),
+                            Divider(
+                                color:
+                                    AppColors.danger.withValues(alpha: 0.15)),
                             StatRow(
                                 label: 'Age',
                                 value: age != null ? '$age years' : '--'),
-                            const Divider(color: AppColors.border),
+                            Divider(
+                                color:
+                                    AppColors.danger.withValues(alpha: 0.15)),
+                            StatRow(label: 'Gender', value: gender),
+                            Divider(
+                                color:
+                                    AppColors.danger.withValues(alpha: 0.15)),
                             StatRow(
                               label: 'Stroke Date',
                               value: strokeDate != null
                                   ? DateFormat('d MMM yyyy').format(strokeDate)
                                   : '--',
                             ),
-                            const Divider(color: AppColors.border),
+                            Divider(
+                                color:
+                                    AppColors.danger.withValues(alpha: 0.15)),
                             StatRow(
                               label: 'Affected Side',
-                              value:
-                                  '${affectedSide[0].toUpperCase()}${affectedSide.substring(1)}',
+                              value: affectedSide != '--'
+                                  ? '${affectedSide[0].toUpperCase()}${affectedSide.substring(1)}'
+                                  : '--',
                             ),
+                            Divider(
+                                color:
+                                    AppColors.danger.withValues(alpha: 0.15)),
+                            StatRow(label: 'Phone', value: phone),
+                            Divider(
+                                color:
+                                    AppColors.danger.withValues(alpha: 0.15)),
+                            StatRow(label: 'Address', value: address),
                           ],
                         ),
 
@@ -230,12 +321,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     setState(() => _reminderEnabled = val);
                                     _saveReminder(val, _reminderTime);
                                   },
-                                  activeColor: AppColors.primary,
+                                  activeThumbColor: AppColors.primary,
                                 ),
                               ],
                             ),
                             if (_reminderEnabled) ...[
-                              const Divider(color: AppColors.border),
+                              Divider(
+                                  color:
+                                      AppColors.danger.withValues(alpha: 0.15)),
                               GestureDetector(
                                 onTap: () async {
                                   final time = await showTimePicker(
@@ -264,7 +357,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         ),
                                         const SizedBox(width: 6),
                                         const Icon(Icons.chevron_right_rounded,
-                                            color: AppColors.textTertiary,
+                                            color: AppColors.textSecondary,
                                             size: 18),
                                       ],
                                     ),
@@ -287,13 +380,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               label: 'Privacy Policy',
                               onTap: () {},
                             ),
-                            const Divider(color: AppColors.border),
+                            Divider(
+                                color:
+                                    AppColors.danger.withValues(alpha: 0.15)),
                             _MenuItem(
                               icon: Icons.help_outline_rounded,
                               label: 'Help & Support',
                               onTap: () {},
                             ),
-                            const Divider(color: AppColors.border),
+                            Divider(
+                                color:
+                                    AppColors.danger.withValues(alpha: 0.15)),
                             _MenuItem(
                               icon: Icons.info_outline_rounded,
                               label: 'Version 1.0.0',
@@ -337,45 +434,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-class StatRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const StatRow({
-    required this.label,
-    required this.value,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w600,
-              fontSize: 15,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _StatPill extends StatelessWidget {
   final String label;
   final String value;
@@ -414,29 +472,38 @@ class _Card extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
+        color: AppColors.cardBg.withValues(alpha: 0.98),
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.10)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: AppColors.primary, size: 18),
-              const SizedBox(width: 8),
+              Icon(icon, color: AppColors.primary, size: 20),
+              const SizedBox(width: 10),
               Text(title,
                   style: const TextStyle(
                       fontWeight: FontWeight.w800,
-                      fontSize: 15,
+                      fontSize: 16,
+                      fontFamily: 'Nunito',
                       color: AppColors.textPrimary)),
             ],
           ),
           const SizedBox(height: 14),
-          const Divider(color: AppColors.border, height: 1),
-          const SizedBox(height: 8),
+          Divider(color: AppColors.danger.withValues(alpha: 0.10), height: 1),
+          const SizedBox(height: 10),
           ...children,
         ],
       ),
@@ -475,7 +542,7 @@ class _MenuItem extends StatelessWidget {
             ),
             if (showArrow)
               const Icon(Icons.chevron_right_rounded,
-                  color: AppColors.textTertiary, size: 18),
+                  color: AppColors.textSecondary, size: 18),
           ],
         ),
       ),

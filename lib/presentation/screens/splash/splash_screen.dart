@@ -89,7 +89,7 @@ class _SplashScreenState extends State<SplashScreen>
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          Colors.white.withOpacity(0.15),
+                          Colors.white.withValues(alpha: 0.15),
                           Colors.transparent
                         ],
                       ),
@@ -141,7 +141,7 @@ class _SplashScreenState extends State<SplashScreen>
                           'Smart AI for Confident Walking',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.92),
+                            color: Colors.white.withValues(alpha: 0.92),
                             fontSize: 15.5,
                             fontWeight: FontWeight.w500,
                           ),
@@ -159,7 +159,7 @@ class _SplashScreenState extends State<SplashScreen>
                             child: LinearProgressIndicator(
                               value: _mainController.value,
                               minHeight: 6,
-                              backgroundColor: Colors.white.withOpacity(0.25),
+                              backgroundColor: Colors.white.withValues(alpha: 0.25),
                               valueColor: const AlwaysStoppedAnimation<Color>(
                                   Colors.white),
                             ),

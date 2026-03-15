@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gait_rehab/core/constants/app_text.dart';
 
 class MetricCard extends StatelessWidget {
   final String label;
@@ -20,7 +19,7 @@ class MetricCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: color.withOpacity(0.08),
+      color: color.withValues(alpha: 0.08),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -33,7 +32,8 @@ class MetricCard extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 20, fontWeight: FontWeight.bold, color: color)),
             Text(unit,
-                style: TextStyle(fontSize: 12, color: color.withOpacity(0.7))),
+                style: TextStyle(
+                    fontSize: 12, color: color.withValues(alpha: 0.7))),
             const SizedBox(height: 8),
             Text(label,
                 style:

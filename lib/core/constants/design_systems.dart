@@ -198,7 +198,7 @@ class AppTheme {
             backgroundColor: AppColors.teal,
             foregroundColor: AppColors.white,
             elevation: 0,
-            shadowColor: AppColors.teal.withOpacity(0.4),
+            shadowColor: AppColors.teal.withValues(alpha: 0.4),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
             ),
@@ -267,12 +267,12 @@ class AppTheme {
 // ═══════════════════════════════════════════════════════════════
 List<BoxShadow> get cardShadow => [
       BoxShadow(
-        color: AppColors.tealDark.withOpacity(0.07),
+        color: AppColors.tealDark.withValues(alpha: 0.07),
         blurRadius: 16,
         offset: const Offset(0, 4),
       ),
       BoxShadow(
-        color: AppColors.tealDark.withOpacity(0.04),
+        color: AppColors.tealDark.withValues(alpha: 0.04),
         blurRadius: 6,
         offset: const Offset(0, 2),
       ),

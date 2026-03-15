@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:gait_rehab/core/constants/app_colors.dart';
 import 'package:gait_rehab/core/constants/app_text.dart';
@@ -130,21 +129,21 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       case NotifType.reminder:
         return _NotifStyle(
           color: AppColors.primary,
-          bg: AppColors.primary.withOpacity(0.10),
+          bg: AppColors.primary.withValues(alpha: 0.10),
           icon: Icons.notifications_active_rounded,
           label: 'Reminder',
         );
       case NotifType.milestone:
         return _NotifStyle(
           color: const Color(0xFFF5A623),
-          bg: const Color(0xFFF5A623).withOpacity(0.10),
+          bg: const Color(0xFFF5A623).withValues(alpha: 0.10),
           icon: Icons.emoji_events_rounded,
           label: 'Milestone',
         );
       case NotifType.tip:
         return _NotifStyle(
           color: AppColors.secondary,
-          bg: AppColors.secondary.withOpacity(0.10),
+          bg: AppColors.secondary.withValues(alpha: 0.10),
           icon: Icons.lightbulb_outline_rounded,
           label: 'Tip',
         );
@@ -227,7 +226,8 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                     children: [
                       Icon(Icons.notifications_off_outlined,
                           size: 64,
-                          color: AppColors.textSecondary.withOpacity(0.4)),
+                          color:
+                              AppColors.textSecondary.withValues(alpha: 0.4)),
                       const SizedBox(height: 16),
                       Text(
                         'No notifications yet',
@@ -338,7 +338,7 @@ class _NotifTileState extends State<_NotifTile>
             padding: const EdgeInsets.only(right: 20),
             margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
-              color: Colors.redAccent.withOpacity(0.15),
+              color: Colors.redAccent.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Icon(Icons.delete_outline_rounded,
@@ -357,15 +357,15 @@ class _NotifTileState extends State<_NotifTile>
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: widget.notification.isRead
-                      ? Colors.white.withOpacity(0.08)
-                      : widget.style.color.withOpacity(0.25),
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : widget.style.color.withValues(alpha: 0.25),
                   width: 1.2,
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: widget.notification.isRead
-                        ? Colors.black.withOpacity(0.04)
-                        : widget.style.color.withOpacity(0.08),
+                        ? Colors.black.withValues(alpha: 0.04)
+                        : widget.style.color.withValues(alpha: 0.08),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -379,7 +379,7 @@ class _NotifTileState extends State<_NotifTile>
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: widget.style.color.withOpacity(0.15),
+                      color: widget.style.color.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Icon(widget.style.icon,
@@ -398,7 +398,8 @@ class _NotifTileState extends State<_NotifTile>
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: widget.style.color.withOpacity(0.12),
+                                color:
+                                    widget.style.color.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(

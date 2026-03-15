@@ -44,7 +44,7 @@ class _SuccessOverlayState extends State<SuccessOverlay>
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white.withOpacity(0.95),
+      color: Colors.white.withValues(alpha: 0.95),
       child: Center(
         child: FadeTransition(
           opacity: _fade,

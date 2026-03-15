@@ -43,7 +43,7 @@ class _C {
 
   static List<BoxShadow> get shadow => [
         BoxShadow(
-          color: heroEnd.withOpacity(0.08),
+          color: heroEnd.withValues(alpha: 0.08),
           blurRadius: 16,
           offset: const Offset(0, 4),
         ),
@@ -181,8 +181,8 @@ class _ExerciseRecommendationScreenState
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                 child: Row(children: [
-                  Text('Recommended Exercises',
-                      style: const TextStyle(
+                  const Text('Recommended Exercises',
+                      style: TextStyle(
                           fontFamily: _C.font,
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
@@ -300,7 +300,7 @@ class _HeroCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(Icons.fitness_center_rounded,
@@ -323,7 +323,7 @@ class _HeroCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
+                        color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(Icons.arrow_back_rounded,
@@ -375,9 +375,9 @@ class _HeroPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: (color ?? Colors.white).withOpacity(0.18),
+        color: (color ?? Colors.white).withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: (color ?? Colors.white).withOpacity(0.3)),
+        border: Border.all(color: (color ?? Colors.white).withValues(alpha: 0.3)),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         Icon(icon, color: color ?? Colors.white, size: 13),
@@ -482,7 +482,7 @@ class _ExerciseCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: _C.shadow,
         border: isExpanded
-            ? Border.all(color: _C.teal.withOpacity(0.4), width: 1.5)
+            ? Border.all(color: _C.teal.withValues(alpha: 0.4), width: 1.5)
             : null,
       ),
       child: Column(
@@ -643,9 +643,9 @@ class _SmallPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
       ),
       child: Text(label,
           style: TextStyle(
@@ -719,7 +719,7 @@ class _ExpandedDetail extends StatelessWidget {
                             width: 20,
                             height: 20,
                             margin: const EdgeInsets.only(top: 2, right: 8),
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               color: _C.tealPale,
                               shape: BoxShape.circle,
                             ),
@@ -753,12 +753,12 @@ class _ExpandedDetail extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFF8EE),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: _C.warning.withOpacity(0.25)),
+                  border: Border.all(color: _C.warning.withValues(alpha: 0.25)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(children: const [
+                    const Row(children: [
                       Icon(Icons.lightbulb_outline_rounded,
                           color: _C.warning, size: 14),
                       SizedBox(width: 6),
@@ -840,7 +840,7 @@ class _StartAllButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: _C.heroEnd.withOpacity(0.35),
+              color: _C.heroEnd.withValues(alpha: 0.35),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -852,7 +852,7 @@ class _StartAllButton extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.play_circle_rounded,
@@ -888,7 +888,7 @@ class _StartAllButton extends StatelessWidget {
 class _DotPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final p = Paint()..color = Colors.white.withOpacity(0.07);
+    final p = Paint()..color = Colors.white.withValues(alpha: 0.07);
     for (double x = 0; x < size.width; x += 18) {
       for (double y = 0; y < size.height; y += 18) {
         canvas.drawCircle(Offset(x, y), 2, p);

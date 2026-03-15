@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:gait_rehab/core/constants/app_theme.dart';
-import 'package:gait_rehab/core/widgets/app_widgets.dart';
+import 'package:gait_rehab/core/constants/app_colors.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
-
 import 'report_detail_screen.dart';
+import '../../core/widgets/risk_badge.dart';
 
 class ReportsListScreen extends StatefulWidget {
   const ReportsListScreen({super.key});
@@ -51,7 +50,7 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
           SliverToBoxAdapter(
             child: Container(
               decoration: const BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                color: AppColors.primary,
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(32),
                   bottomRight: Radius.circular(32),
@@ -111,7 +110,7 @@ class _ReportsListScreenState extends State<ReportsListScreen> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.08),
+              color: AppColors.primary.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.description_rounded,
@@ -157,12 +156,12 @@ class _ReportCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: AppColors.cardBg,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.primary),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -176,7 +175,7 @@ class _ReportCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.description_rounded,
@@ -203,11 +202,11 @@ class _ReportCard extends StatelessWidget {
                   ),
                 ),
                 const Icon(Icons.arrow_forward_ios_rounded,
-                    size: 14, color: AppColors.textTertiary),
+                    size: 14, color: AppColors.textSecondary),
               ],
             ),
             const SizedBox(height: 16),
-            const Divider(color: AppColors.border, height: 1),
+            const Divider(color: AppColors.primary, height: 1),
             const SizedBox(height: 14),
             Row(
               children: [
@@ -260,7 +259,7 @@ class _MiniStat extends StatelessWidget {
                 color: color, fontWeight: FontWeight.w800, fontSize: 13)),
         Text(label,
             style:
-                const TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+                const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
       ],
     );
   }

@@ -25,7 +25,7 @@ class RiskBadge extends StatelessWidget {
       padding: EdgeInsets.symmetric(
           horizontal: large ? 16 : 8, vertical: large ? 8 : 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(large ? 16 : 8),
         border: Border.all(color: color),
       ),

@@ -12,16 +12,17 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
-  final _formKey   = GlobalKey<FormState>();
-  final _nameCtrl  = TextEditingController();
-  final _ageCtrl   = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _nameCtrl = TextEditingController();
+  final _ageCtrl = TextEditingController();
   DateTime? _strokeDate;
-  String _side   = 'left';
-  bool _loading  = false;
+  String _side = 'left';
+  bool _loading = false;
 
   @override
   void dispose() {
-    _nameCtrl.dispose(); _ageCtrl.dispose();
+    _nameCtrl.dispose();
+    _ageCtrl.dispose();
     super.dispose();
   }
 
@@ -48,7 +49,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const HomeScreen()),
-              (_) => false,
+          (_) => false,
         );
       }
     } catch (e) {
@@ -80,12 +81,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     children: [
                       TealPill(
                         label: 'Step 2 of 2',
-                        bgColor: Colors.white.withOpacity(0.2),
+                        bgColor: Colors.white.withValues(alpha: 0.2),
                         textColor: Colors.white,
                       ),
                       const SizedBox(height: 14),
-                      const Text('Your Profile',
-                          style: AppText.heroTitle),
+                      const Text('Your Profile', style: AppText.heroTitle),
                       const SizedBox(height: 6),
                       const Text(
                         'Help us personalise your rehab analysis',
@@ -96,10 +96,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
                           value: 1.0,
-                          backgroundColor:
-                          Colors.white.withOpacity(0.2),
-                          valueColor: const AlwaysStoppedAnimation(
-                              Colors.white),
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                          valueColor:
+                              const AlwaysStoppedAnimation(Colors.white),
                           minHeight: 5,
                         ),
                       ),
@@ -118,8 +117,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Patient Information',
-                            style: AppText.h3),
+                        const Text('Patient Information', style: AppText.h3),
                         const SizedBox(height: 18),
 
                         // Name
@@ -128,8 +126,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           label: 'Full Name',
                           icon: Icons.person_outline_rounded,
                           caps: TextCapitalization.words,
-                          validator: (v) =>
-                          v == null || v.trim().isEmpty
+                          validator: (v) => v == null || v.trim().isEmpty
                               ? 'Enter your name'
                               : null,
                         ),
@@ -153,8 +150,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                         // Stroke date
                         Text('Date of Stroke',
-                            style: AppText.label
-                                .copyWith(fontSize: 13)),
+                            style: AppText.label.copyWith(fontSize: 13)),
                         const SizedBox(height: 8),
                         GestureDetector(
                           onTap: () async {
@@ -204,7 +200,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   _strokeDate == null
                                       ? 'Select date'
                                       : DateFormat('d MMMM yyyy')
-                                      .format(_strokeDate!),
+                                          .format(_strokeDate!),
                                   style: TextStyle(
                                     fontFamily: AppText.fontFamily,
                                     fontSize: 14,
@@ -217,10 +213,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   ),
                                 ),
                                 const Spacer(),
-                                const Icon(
-                                    Icons.chevron_right_rounded,
-                                    color: AppColors.textHint,
-                                    size: 18),
+                                const Icon(Icons.chevron_right_rounded,
+                                    color: AppColors.textHint, size: 18),
                               ],
                             ),
                           ),
@@ -230,31 +224,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                         // Affected side
                         Text('Affected Side',
-                            style: AppText.label
-                                .copyWith(fontSize: 13)),
+                            style: AppText.label.copyWith(fontSize: 13)),
                         const SizedBox(height: 10),
                         Row(
-                          children: ['left', 'right', 'both']
-                              .map((s) {
+                          children: ['left', 'right', 'both'].map((s) {
                             final sel = _side == s;
                             return Expanded(
                               child: GestureDetector(
                                 onTap: () => setState(() => _side = s),
                                 child: AnimatedContainer(
-                                  duration: const Duration(
-                                      milliseconds: 200),
+                                  duration: const Duration(milliseconds: 200),
                                   margin: s == 'both'
                                       ? EdgeInsets.zero
-                                      : const EdgeInsets.only(
-                                      right: 8),
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 14),
+                                      : const EdgeInsets.only(right: 8),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 14),
                                   decoration: BoxDecoration(
                                     color: sel
                                         ? AppColors.teal
                                         : AppColors.inputBg,
-                                    borderRadius:
-                                    BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color: sel
                                           ? AppColors.teal
@@ -290,7 +279,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
 
                         const SizedBox(height: 12),
-                        Center(
+                        const Center(
                           child: Text(
                             'Your data is private and encrypted.',
                             style: AppText.bodySmall,
@@ -331,20 +320,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         prefixIcon: Icon(icon, color: AppColors.teal, size: 20),
         border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide:
-            const BorderSide(color: AppColors.inputBorder)),
+            borderSide: const BorderSide(color: AppColors.inputBorder)),
         enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide:
-            const BorderSide(color: AppColors.inputBorder)),
+            borderSide: const BorderSide(color: AppColors.inputBorder)),
         focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide:
-            const BorderSide(color: AppColors.teal, width: 2)),
+            borderSide: const BorderSide(color: AppColors.teal, width: 2)),
         errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(14),
-            borderSide:
-            const BorderSide(color: AppColors.danger)),
+            borderSide: const BorderSide(color: AppColors.danger)),
       ),
       validator: validator,
     );

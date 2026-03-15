@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:gait_rehab/core/constants/app_colors.dart';
 import 'package:gait_rehab/core/constants/app_text.dart';
 import 'package:gait_rehab/core/widgets/widgets.dart';
-import 'package:gait_rehab/domain/models/exercise_model.dart';
-import 'package:gait_rehab/presentation/screens/home/home_exercise_banner.dart';
 import 'package:gait_rehab/presentation/screens/notifications/notification_screen.dart';
 import 'package:lottie/lottie.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -14,7 +12,6 @@ import '../progress/progress_screen.dart';
 import '../report/reports_list_screen.dart';
 import '../profile/profile_screen.dart';
 import '../upload/upload_screen.dart';
-import '../exercise/exercise_mode_screen.dart';
 import 'metric_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -47,232 +44,79 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 // ─── Bottom Nav ───────────────────────────────────────────────────────────────
-class _BottomNav extends StatefulWidget {
+class _BottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
   const _BottomNav({required this.currentIndex, required this.onTap});
 
   @override
-  State<_BottomNav> createState() => _BottomNavState();
-}
-
-class _BottomNavState extends State<_BottomNav> with TickerProviderStateMixin {
-  late AnimationController _fabController;
-  late Animation<double> _fabScale;
-
-  @override
-  void initState() {
-    super.initState();
-    _fabController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200),
-    );
-    _fabScale = Tween<double>(begin: 1.0, end: 0.92).animate(
-      CurvedAnimation(parent: _fabController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _fabController.dispose();
-    super.dispose();
-  }
-
-  void _onFabTap() async {
-    await _fabController.forward();
-    await _fabController.reverse();
-    // Navigate to exercise mode with beginner exercises
-    if (mounted) {
-      // Get beginner exercises, fallback to first 4 if none found
-      var exercises = ExerciseLibrary.all
-          .where((e) => e.difficulty == ExerciseDifficulty.beginner)
-          .toList();
-      if (exercises.isEmpty) {
-        exercises = ExerciseLibrary.all.take(4).toList();
-      } else {
-        exercises = exercises.take(4).toList();
-      }
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => ExerciseModeScreen(
-                  exercises: exercises,
-                  sessionTitle: 'Beginner Rehab Session',
-                )),
-      );
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.bottomCenter,
-      children: [
-        // Bottom Nav Bar
-        Container(
-          height: 86,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 24,
-                offset: const Offset(0, -4),
-              ),
-            ],
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey.shade100, width: 1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
           ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10, left: 15, right: 15),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _navItem(0, Icons.home_outlined, Icons.home_rounded, 'Home'),
-                  _navItem(1, Icons.show_chart_outlined,
-                      Icons.show_chart_rounded, 'Progress'),
-                  const SizedBox(width: 72), // Space for center FAB
-                  _navItem(2, Icons.description_outlined,
-                      Icons.description_rounded, 'Reports'),
-                  _navItem(
-                      3, Icons.person_outline, Icons.person_rounded, 'Profile'),
-                ],
-              ),
-            ),
-          ),
-        ),
-        // Center Floating Action Button
-        Positioned(
-          bottom: 50,
-          child: ScaleTransition(
-            scale: _fabScale,
-            child: GestureDetector(
-              onTap: _onFabTap,
-              child: Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0A7EA4), Color(0xFF07B5A0)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF0A7EA4).withOpacity(0.4),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: Image.asset(
-                  'assets/icons/heart_float.png',
-                  width: 32,
-                  height: 32,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _navItem(int index, IconData inactive, IconData active, String label) {
-    final isActive = widget.currentIndex == index;
-    return _NavItem(
-      isActive: isActive,
-      icon: isActive ? active : inactive,
-      label: label,
-      onTap: () => widget.onTap(index),
-    );
-  }
-}
-
-class _NavItem extends StatefulWidget {
-  final bool isActive;
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _NavItem({
-    required this.isActive,
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  State<_NavItem> createState() => _NavItemState();
-}
-
-class _NavItemState extends State<_NavItem>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.88).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Future<void> _onTap() async {
-    await _controller.forward();
-    await _controller.reverse();
-    widget.onTap();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _onTap,
-      behavior: HitTestBehavior.opaque,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: SizedBox(
-          height: 60,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
+        ],
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Icon(
-                widget.icon,
-                color: widget.isActive
-                    ? const Color(0xFF0A7EA4)
-                    : const Color(0xFFB8C5D0),
-                size: 24,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                widget.label,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: widget.isActive
-                      ? const Color(0xFF0A7EA4)
-                      : const Color(0xFFB8C5D0),
-                  fontWeight:
-                      widget.isActive ? FontWeight.w600 : FontWeight.w500,
-                  height: 1.0,
-                ),
-              ),
+              _navItem(0, Icons.home_rounded, Icons.home_outlined, 'Home'),
+              _navItem(1, Icons.show_chart_rounded, Icons.show_chart_outlined,
+                  'Progress'),
+              _navItem(2, Icons.description_rounded, Icons.description_outlined,
+                  'Reports'),
+              _navItem(3, Icons.person_rounded, Icons.person_outline_rounded,
+                  'Profile'),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem(int index, IconData active, IconData inactive, String label) {
+    final isActive = currentIndex == index;
+    return GestureDetector(
+      onTap: () => onTap(index),
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        decoration: BoxDecoration(
+          color: isActive
+              ? const Color(0xFF0A7EA4).withValues(alpha: 0.10)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isActive ? active : inactive,
+              color: isActive ? const Color(0xFF0A7EA4) : Colors.grey.shade400,
+              size: 24,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                color:
+                    isActive ? const Color(0xFF0A7EA4) : Colors.grey.shade400,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -431,9 +275,9 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _SectionTitle(
+                              const _SectionTitle(
                                   title: 'Start Session',
-                                  color: const Color(0xFF0A7EA4)),
+                                  color: Color(0xFF0A7EA4)),
                               const SizedBox(height: 16),
                               _SessionCard(
                                 title: 'Live Recording',
@@ -468,9 +312,6 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                                     MaterialPageRoute(
                                         builder: (_) => const UploadScreen())),
                               ),
-                              const SizedBox(height: 24),
-                              HomeExerciseBanner(lastSession: _lastSession),
-                              const SizedBox(height: 24),
                             ],
                           ),
                         ),
@@ -489,9 +330,9 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _SectionTitle(
+                              const _SectionTitle(
                                   title: 'Last Session Stats',
-                                  color: const Color(0xFF00A890)),
+                                  color: Color(0xFF00A890)),
                               const SizedBox(height: 16),
                               _StatsGrid(
                                 cadence: cadence,
@@ -512,9 +353,9 @@ class _HomeTabState extends State<_HomeTab> with TickerProviderStateMixin {
                       position: _tipSlide,
                       child: FadeTransition(
                         opacity: _tipFade,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
-                          child: const _TipCard(),
+                        child: const Padding(
+                          padding: EdgeInsets.fromLTRB(20, 24, 20, 40),
+                          child: _TipCard(),
                         ),
                       ),
                     ),
@@ -549,7 +390,7 @@ class _LoadingView extends StatelessWidget {
             Text(
               'Loading your progress…',
               style: TextStyle(
-                color: const Color(0xFF0A7EA4).withOpacity(0.7),
+                color: const Color(0xFF0A7EA4).withValues(alpha: 0.7),
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
@@ -649,7 +490,7 @@ class _HeroHeader extends StatelessWidget {
             height: 220,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.06),
+              color: Colors.white.withValues(alpha: 0.06),
             ),
           ),
         ),
@@ -661,7 +502,7 @@ class _HeroHeader extends StatelessWidget {
             height: 70,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
             ),
           ),
         ),
@@ -673,7 +514,7 @@ class _HeroHeader extends StatelessWidget {
             height: 110,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.04),
+              color: Colors.white.withValues(alpha: 0.04),
             ),
           ),
         ),
@@ -715,10 +556,10 @@ class _HeroHeader extends StatelessWidget {
                           width: 38,
                           height: 38,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.20),
+                            color: Colors.white.withValues(alpha: 0.20),
                             borderRadius: BorderRadius.circular(11),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.35),
+                              color: Colors.white.withValues(alpha: 0.35),
                               width: 1.2,
                             ),
                           ),
@@ -775,10 +616,10 @@ class _HeroHeader extends StatelessWidget {
                                 width: 44,
                                 height: 44,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.18),
+                                  color: Colors.white.withValues(alpha: 0.18),
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: Colors.white.withOpacity(0.30),
+                                    color: Colors.white.withValues(alpha: 0.30),
                                   ),
                                 ),
                                 child: const Icon(
@@ -833,7 +674,7 @@ class _HeroHeader extends StatelessWidget {
                           Text(
                             _greeting(),
                             style: TextStyle(
-                              color: Colors.white.withOpacity(0.65),
+                              color: Colors.white.withValues(alpha: 0.65),
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                             ),
@@ -857,23 +698,23 @@ class _HeroHeader extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
+                        color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(16),
-                        border:
-                            Border.all(color: Colors.white.withOpacity(0.25)),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.25)),
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           // Fire animation — use Lottie if you have one,
                           // otherwise fall back to the icon
-                          const Icon(
+                          Icon(
                             Icons.local_fire_department_rounded,
                             color: Color(0xFFFFD166),
                             size: 18,
                           ),
-                          const SizedBox(width: 6),
-                          const Column(
+                          SizedBox(width: 6),
+                          Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -979,16 +820,16 @@ class _HeaderChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.14),
+        color: Colors.white.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.22)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.22),
+              color: iconColor.withValues(alpha: 0.22),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(icon, color: iconColor, size: 15),
@@ -1001,7 +842,7 @@ class _HeaderChip extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.60),
+                    color: Colors.white.withValues(alpha: 0.60),
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
                   ),
@@ -1060,7 +901,7 @@ class _SessionCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
-              color: colors.first.withOpacity(0.30),
+              color: colors.first.withValues(alpha: 0.30),
               blurRadius: 18,
               offset: const Offset(0, 7),
             ),
@@ -1083,7 +924,7 @@ class _SessionCard extends StatelessWidget {
                     width: 54,
                     height: 54,
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.20),
+                      color: Colors.white.withValues(alpha: 0.20),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(icon, color: Colors.white, size: 26),
@@ -1098,7 +939,7 @@ class _SessionCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.25),
+                        color: Colors.white.withValues(alpha: 0.25),
                         borderRadius: BorderRadius.circular(5),
                       ),
                       child: Text(
@@ -1125,7 +966,7 @@ class _SessionCard extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.78),
+                      color: Colors.white.withValues(alpha: 0.78),
                       fontSize: 12,
                       height: 1.4,
                     ),
@@ -1138,7 +979,7 @@ class _SessionCard extends StatelessWidget {
               width: 30,
               height: 30,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.18),
+                color: Colors.white.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(Icons.arrow_forward_ios_rounded,
@@ -1275,7 +1116,7 @@ class _StatTileState extends State<_StatTile>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -1290,7 +1131,7 @@ class _StatTileState extends State<_StatTile>
               Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: widget.color.withOpacity(0.10),
+                  color: widget.color.withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(widget.icon, color: widget.color, size: 18),
@@ -1333,7 +1174,7 @@ class _StatTileState extends State<_StatTile>
                 Container(
                   height: 5,
                   decoration: BoxDecoration(
-                    color: widget.color.withOpacity(0.12),
+                    color: widget.color.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),
@@ -1369,7 +1210,7 @@ class _TipCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 14,
             offset: const Offset(0, 4),
           ),
@@ -1392,7 +1233,7 @@ class _TipCard extends StatelessWidget {
               errorBuilder: (_, __, ___) => Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00A890).withOpacity(0.10),
+                  color: const Color(0xFF00A890).withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(Icons.lightbulb_rounded,

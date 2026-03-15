@@ -77,7 +77,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(Icons.arrow_back_rounded,
@@ -95,7 +95,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
                           value: 0.5,
-                          backgroundColor: Colors.white.withOpacity(0.2),
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
                           valueColor:
                               const AlwaysStoppedAnimation(Colors.white),
                           minHeight: 5,
@@ -120,7 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             style:
                                 AppText.h3.copyWith(color: AppColors.textDark)),
                         const SizedBox(height: 4),
-                        Text("You'll use these to sign in.",
+                        const Text("You'll use these to sign in.",
                             style: AppText.body),
                         const SizedBox(height: 22),
                         _Field(

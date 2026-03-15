@@ -27,27 +27,27 @@ class NotificationScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF3F7FA),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-        children: [
+        children: const [
           // Example notification cards
           _NotificationCard(
             title: 'Session Reminder',
             subtitle: 'Don\'t forget to record your daily walking session!',
             icon: Icons.alarm_rounded,
-            color: const Color(0xFF0A7EA4),
+            color: Color(0xFF0A7EA4),
             time: 'Today, 9:00 AM',
           ),
           _NotificationCard(
             title: 'New Report Ready',
             subtitle: 'Your gait analysis report is now available.',
             icon: Icons.description_rounded,
-            color: const Color(0xFF00A890),
+            color: Color(0xFF00A890),
             time: 'Yesterday, 7:12 PM',
           ),
           _NotificationCard(
             title: 'Streak Achieved!',
             subtitle: 'You\'ve hit a 5-day streak. Keep it up!',
             icon: Icons.local_fire_department_rounded,
-            color: const Color(0xFFFFD166),
+            color: Color(0xFFFFD166),
             time: '2 days ago',
           ),
         ],
@@ -81,7 +81,7 @@ class _NotificationCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -94,7 +94,7 @@ class _NotificationCard extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.13),
+              color: color.withValues(alpha: 0.13),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 22),

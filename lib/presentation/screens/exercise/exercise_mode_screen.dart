@@ -23,7 +23,7 @@ class _C {
 
   static List<BoxShadow> get glow => [
         BoxShadow(
-            color: teal.withOpacity(0.35), blurRadius: 24, spreadRadius: 2),
+            color: teal.withValues(alpha: 0.35), blurRadius: 24, spreadRadius: 2),
       ];
 }
 
@@ -240,7 +240,7 @@ class _TopBar extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _C.tealDk.withOpacity(0.4),
+                  color: _C.tealDk.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text('${exerciseIndex + 1}/$totalExercises',
@@ -306,7 +306,7 @@ class _WarmupView extends StatelessWidget {
                   height: 160,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: _C.tealDk.withOpacity(0.2),
+                    color: _C.tealDk.withValues(alpha: 0.2),
                     boxShadow: _C.glow,
                   ),
                 ),
@@ -481,7 +481,7 @@ class _TimerDisplay extends StatelessWidget {
       decoration: BoxDecoration(
         color: _C.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _C.teal.withOpacity(0.2)),
+        border: Border.all(color: _C.teal.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -523,10 +523,10 @@ class _RepCounter extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
         decoration: BoxDecoration(
-          color: done ? _C.teal.withOpacity(0.2) : _C.surface,
+          color: done ? _C.teal.withValues(alpha: 0.2) : _C.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: done ? _C.teal : _C.teal.withOpacity(0.2),
+            color: done ? _C.teal : _C.teal.withValues(alpha: 0.2),
             width: done ? 2 : 1,
           ),
           boxShadow: done ? _C.glow : null,
@@ -570,12 +570,12 @@ class _RepCounter extends StatelessWidget {
                   width: i < current ? 14 : 10,
                   height: i < current ? 14 : 10,
                   decoration: BoxDecoration(
-                    color: i < current ? _C.teal : _C.teal.withOpacity(0.15),
+                    color: i < current ? _C.teal : _C.teal.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                     boxShadow: i < current
                         ? [
                             BoxShadow(
-                                color: _C.teal.withOpacity(0.5), blurRadius: 6)
+                                color: _C.teal.withValues(alpha: 0.5), blurRadius: 6)
                           ]
                         : null,
                   ),
@@ -599,9 +599,9 @@ class _VoiceCueBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: _C.tealDk.withOpacity(0.25),
+        color: _C.tealDk.withValues(alpha: 0.25),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _C.teal.withOpacity(0.25)),
+        border: Border.all(color: _C.teal.withValues(alpha: 0.25)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -609,7 +609,7 @@ class _VoiceCueBanner extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-                color: _C.teal.withOpacity(0.2), shape: BoxShape.circle),
+                color: _C.teal.withValues(alpha: 0.2), shape: BoxShape.circle),
             child: const Icon(Icons.record_voice_over_rounded,
                 color: _C.tealLt, size: 16),
           ),
@@ -641,7 +641,7 @@ class _CueCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: _C.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _C.teal.withOpacity(0.1)),
+        border: Border.all(color: _C.teal.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -667,7 +667,7 @@ class _CueCard extends StatelessWidget {
                       height: 18,
                       margin: const EdgeInsets.only(top: 2, right: 8),
                       decoration: BoxDecoration(
-                          color: _C.tealDk.withOpacity(0.5),
+                          color: _C.tealDk.withValues(alpha: 0.5),
                           shape: BoxShape.circle),
                       child: Center(
                         child: Text('${e.key + 1}',
@@ -769,14 +769,14 @@ class _RestView extends StatelessWidget {
             decoration: BoxDecoration(
               color: _C.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _C.teal.withOpacity(0.2)),
+              border: Border.all(color: _C.teal.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: _C.tealDk.withOpacity(0.3),
+                    color: _C.tealDk.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child:
@@ -830,7 +830,7 @@ class _ExerciseDoneView extends StatelessWidget {
             width: 100,
             height: 100,
             decoration: BoxDecoration(
-              color: _C.teal.withOpacity(0.2),
+              color: _C.teal.withValues(alpha: 0.2),
               shape: BoxShape.circle,
               boxShadow: _C.glow,
             ),
@@ -870,7 +870,7 @@ class _BottomControls extends StatelessWidget {
         color: _C.surface,
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, -4)),
         ],
@@ -967,7 +967,7 @@ class _InfoChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: _C.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _C.teal.withOpacity(0.15)),
+        border: Border.all(color: _C.teal.withValues(alpha: 0.15)),
       ),
       child: Column(
         children: [

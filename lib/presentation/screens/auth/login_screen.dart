@@ -85,7 +85,7 @@ class _LoginScreenState extends State<LoginScreen>
                           width: 52,
                           height: 52,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Icon(Icons.directions_walk_rounded,
@@ -100,9 +100,9 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                         const SizedBox(height: 20),
                         // Feature chips row
-                        Wrap(
+                        const Wrap(
                           spacing: 8,
-                          children: const [
+                          children: [
                             _FeatureChip('Pose Detection'),
                             _FeatureChip('Voice Feedback'),
                             _FeatureChip('AI Reports'),
@@ -127,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen>
                               style: AppText.h2
                                   .copyWith(color: AppColors.textDark)),
                           const SizedBox(height: 4),
-                          Text('Sign in to continue your recovery',
+                          const Text('Sign in to continue your recovery',
                               style: AppText.body),
                           const SizedBox(height: 24),
 
@@ -211,9 +211,9 @@ class _FeatureChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.18),
+        color: Colors.white.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.3)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
       ),
       child: Text(label,
           style: const TextStyle(

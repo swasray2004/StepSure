@@ -28,6 +28,10 @@ class AppColors {
   static const inputBg = Color(0xFFF5FAFA);
   static const inputBorder = Color(0xFFDCEEEE);
 
+  // Additional colors
+  static const teal = Color(0xFF009688);
+  static const tealPale = Color(0xFFE0F2F1);
+
   static Color scoreColor(double score) {
     if (score >= 70) return success;
     if (score >= 40) return warning;

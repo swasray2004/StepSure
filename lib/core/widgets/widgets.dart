@@ -105,7 +105,7 @@ class _DotPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withOpacity(0.08)
+      ..color = Colors.white.withValues(alpha: 0.08)
       ..style = PaintingStyle.fill;
     const spacing = 18.0;
     const radius = 2.0;
@@ -147,7 +147,8 @@ class AppSearchBar extends StatelessWidget {
       child: Row(
         children: [
           const SizedBox(width: 16),
-          Icon(Icons.search_rounded, color: AppColors.textLight, size: 20),
+          const Icon(Icons.search_rounded,
+              color: AppColors.textLight, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
@@ -161,7 +162,7 @@ class AppSearchBar extends StatelessWidget {
               ),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: TextStyle(
+                hintStyle: const TextStyle(
                   fontFamily: AppText.fontFamily,
                   color: AppColors.textHint,
                   fontSize: 14,
@@ -392,7 +393,7 @@ class AppBottomNav extends StatelessWidget {
         color: AppColors.white,
         boxShadow: [
           BoxShadow(
-            color: AppColors.tealDark.withOpacity(0.08),
+            color: AppColors.tealDark.withValues(alpha: 0.08),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -502,7 +503,7 @@ class _ScoreRingState extends State<ScoreRing>
               painter: _RingPainter(
                   progress: _anim.value,
                   color: color,
-                  bgColor: color.withOpacity(0.1)),
+                  bgColor: color.withValues(alpha: 0.1)),
             ),
             Column(
               mainAxisSize: MainAxisSize.min,
@@ -585,9 +586,9 @@ class RiskBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -641,7 +642,7 @@ class MetricTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(7),
             decoration: BoxDecoration(
-              color: c.withOpacity(0.12),
+              color: c.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: c, size: 16),

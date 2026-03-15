@@ -289,7 +289,7 @@ class _SkeletonPainter3D extends CustomPainter {
     canvas.drawPath(
       path,
       Paint()
-        ..color = _boneDark.withOpacity(0.6)
+        ..color = _boneDark.withValues(alpha: 0.6)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 0.8,
     );
@@ -298,7 +298,7 @@ class _SkeletonPainter3D extends CustomPainter {
       c1,
       c4,
       Paint()
-        ..color = _boneHighlit.withOpacity(0.35 * lightFactor)
+        ..color = _boneHighlit.withValues(alpha: 0.35 * lightFactor)
         ..strokeWidth = avgRadius * 0.35
         ..strokeCap = StrokeCap.round,
     );
@@ -368,14 +368,14 @@ class _SkeletonPainter3D extends CustomPainter {
     canvas.drawCircle(
       Offset(c.dx - r * 0.28, c.dy - r * 0.32),
       r * 0.25,
-      Paint()..color = _boneHighlit.withOpacity(0.7),
+      Paint()..color = _boneHighlit.withValues(alpha: 0.7),
     );
 
     canvas.drawCircle(
       c,
       r,
       Paint()
-        ..color = _boneDark.withOpacity(0.5)
+        ..color = _boneDark.withValues(alpha: 0.5)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 0.8,
     );
@@ -405,14 +405,14 @@ class _SkeletonPainter3D extends CustomPainter {
     canvas.drawCircle(
       Offset(c.dx - r * 0.3, c.dy - r * 0.36),
       r * 0.28,
-      Paint()..color = _boneHighlit.withOpacity(0.6),
+      Paint()..color = _boneHighlit.withValues(alpha: 0.6),
     );
 
     canvas.drawCircle(
       c,
       r,
       Paint()
-        ..color = _boneDark.withOpacity(0.5)
+        ..color = _boneDark.withValues(alpha: 0.5)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.0,
     );
@@ -428,12 +428,12 @@ class _SkeletonPainter3D extends CustomPainter {
     canvas.drawCircle(
       Offset(faceX - r * 0.16, faceY - r * 0.05),
       r * 0.08,
-      Paint()..color = _boneHighlit.withOpacity(0.55),
+      Paint()..color = _boneHighlit.withValues(alpha: 0.55),
     );
     canvas.drawCircle(
       Offset(faceX + r * 0.16, faceY - r * 0.05),
       r * 0.08,
-      Paint()..color = _boneHighlit.withOpacity(0.55),
+      Paint()..color = _boneHighlit.withValues(alpha: 0.55),
     );
   }
 
@@ -446,7 +446,7 @@ class _SkeletonPainter3D extends CustomPainter {
       neck,
       spine,
       Paint()
-        ..color = _boneHighlit.withOpacity(0.10)
+        ..color = _boneHighlit.withValues(alpha: 0.10)
         ..strokeWidth = 3
         ..strokeCap = StrokeCap.round,
     );
@@ -454,7 +454,7 @@ class _SkeletonPainter3D extends CustomPainter {
       spine,
       hips,
       Paint()
-        ..color = _boneHighlit.withOpacity(0.10)
+        ..color = _boneHighlit.withValues(alpha: 0.10)
         ..strokeWidth = 4
         ..strokeCap = StrokeCap.round,
     );
@@ -500,7 +500,7 @@ class AvatarAnimationCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: teal.withOpacity(0.2)),
+        border: Border.all(color: teal.withValues(alpha: 0.2)),
       ),
       child: Stack(
         alignment: Alignment.center,
@@ -520,7 +520,7 @@ class AvatarAnimationCard extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: RadialGradient(
-                colors: [teal.withOpacity(0.09), Colors.transparent],
+                colors: [teal.withValues(alpha: 0.09), Colors.transparent],
               ),
             ),
           ),
@@ -534,7 +534,7 @@ class AvatarAnimationCard extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(6),
                 gradient: RadialGradient(
-                  colors: [teal.withOpacity(0.25), Colors.transparent],
+                  colors: [teal.withValues(alpha: 0.25), Colors.transparent],
                 ),
               ),
             ),
@@ -546,8 +546,8 @@ class AvatarAnimationCard extends StatelessWidget {
             height: 268,
             child: CircularProgressIndicator(
               value: setProgress,
-              backgroundColor: tealDk.withOpacity(0.12),
-              valueColor: AlwaysStoppedAnimation(teal.withOpacity(0.28)),
+              backgroundColor: tealDk.withValues(alpha: 0.12),
+              valueColor: AlwaysStoppedAnimation(teal.withValues(alpha: 0.28)),
               strokeWidth: 5,
               strokeCap: StrokeCap.round,
             ),
@@ -576,7 +576,7 @@ class AvatarAnimationCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF1C4040),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: teal.withOpacity(0.25)),
+                border: Border.all(color: teal.withValues(alpha: 0.25)),
               ),
               child: Text(exerciseEmoji, style: const TextStyle(fontSize: 20)),
             ),
@@ -589,7 +589,7 @@ class AvatarAnimationCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: tealDk.withOpacity(0.6),
+                color: tealDk.withValues(alpha: 0.6),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Row(
@@ -615,7 +615,7 @@ class AvatarAnimationCard extends StatelessWidget {
           if (!isActive)
             Container(
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.55),
+                color: Colors.black.withValues(alpha: 0.55),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: const Center(
@@ -632,7 +632,7 @@ class AvatarAnimationCard extends StatelessWidget {
 class _GridDots extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final p = Paint()..color = const Color(0xFF3AABAB).withOpacity(0.05);
+    final p = Paint()..color = const Color(0xFF3AABAB).withValues(alpha: 0.05);
     for (double x = 0; x < size.width; x += 22) {
       for (double y = 0; y < size.height; y += 22) {
         canvas.drawCircle(Offset(x, y), 1.5, p);

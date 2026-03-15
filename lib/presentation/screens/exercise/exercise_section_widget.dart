@@ -53,7 +53,7 @@ class ExerciseSectionWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.tealDark.withOpacity(0.35),
+                  color: AppColors.tealDark.withValues(alpha: 0.35),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
                 ),
@@ -64,7 +64,7 @@ class ExerciseSectionWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.18),
+                    color: Colors.white.withValues(alpha: 0.18),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.fitness_center_rounded,
@@ -224,7 +224,7 @@ class _ExerciseTeaserCard extends StatelessWidget {
                           horizontal: 7, vertical: 3),
                       decoration: BoxDecoration(
                         color: _priorityColor(e.value.priorityLabel)
-                            .withOpacity(0.1),
+                            .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(

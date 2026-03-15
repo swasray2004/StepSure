@@ -52,7 +52,7 @@ class SkeletonPainter extends CustomPainter {
   final _jointPaint = Paint()..style = PaintingStyle.fill;
 
   final _borderPaint = Paint()
-    ..color = Colors.white.withOpacity(0.80)
+    ..color = Colors.white.withValues(alpha: 0.80)
     ..strokeWidth = 1.5
     ..style = PaintingStyle.stroke;
 
@@ -129,7 +129,7 @@ class SkeletonPainter extends CustomPainter {
           pt,
           4,
           Paint()
-            ..color = Colors.yellow.withOpacity(0.5)
+            ..color = Colors.yellow.withValues(alpha: 0.5)
             ..style = PaintingStyle.fill,
         );
         continue;

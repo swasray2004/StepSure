@@ -86,7 +86,7 @@ class HomeExerciseBanner extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.tealDark.withOpacity(0.3),
+                  color: AppColors.tealDark.withValues(alpha: 0.3),
                   blurRadius: 18,
                   offset: const Offset(0, 6),
                 ),
@@ -110,7 +110,7 @@ class HomeExerciseBanner extends StatelessWidget {
                         width: 64,
                         height: 64,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.18),
+                          color: Colors.white.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: const Center(
@@ -145,12 +145,12 @@ class HomeExerciseBanner extends StatelessWidget {
                                   height: 1.3),
                             ),
                             const SizedBox(height: 10),
-                            Row(children: [
+                            const Row(children: [
                               _MiniChip(
                                 icon: Icons.play_circle_rounded,
                                 label: 'Start Now',
                               ),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               _MiniChip(
                                 icon: Icons.record_voice_over_rounded,
                                 label: 'Voice guidance',
@@ -167,10 +167,7 @@ class HomeExerciseBanner extends StatelessWidget {
           ),
         ),
 
-
-
         // ── Category quick-select row ────────────────────────────────
-
       ],
     );
   }
@@ -200,7 +197,7 @@ class _MiniChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -261,7 +258,7 @@ class _CategoryChip extends StatelessWidget {
 class _DotPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final p = Paint()..color = Colors.white.withOpacity(0.07);
+    final p = Paint()..color = Colors.white.withValues(alpha: 0.07);
     for (double x = 0; x < size.width; x += 18) {
       for (double y = 0; y < size.height; y += 18) {
         canvas.drawCircle(Offset(x, y), 2, p);

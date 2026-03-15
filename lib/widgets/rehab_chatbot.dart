@@ -196,7 +196,15 @@ $sessionSummaries
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        return decoded['candidates'][0]['content']['parts'][0]['text'] as String;
+        final candidates = decoded['candidates'] as List?;
+        if (candidates == null || candidates.isEmpty) {
+          throw Exception('empty_response');
+        }
+        final text = candidates[0]['content']['parts'][0]['text'] as String?;
+        if (text == null || text.trim().isEmpty) {
+          throw Exception('empty_text');
+        }
+        return text;
       } else if (response.statusCode == 429) {
         // Rate limited, wait and retry
         retries++;
@@ -205,7 +213,7 @@ $sessionSummaries
           continue;
         }
       }
-      throw Exception('${response.statusCode}');
+      throw Exception('${response.statusCode}:${response.body}');
     }
     throw Exception('429');
   }
@@ -230,6 +238,7 @@ $sessionSummaries
         _thinking = false;
       });
     } catch (e) {
+      debugPrint('Chatbot error: $e');
       setState(() {
         _messages.add(_Msg(
           role: 'assistant',

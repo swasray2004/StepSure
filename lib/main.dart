@@ -43,8 +43,8 @@ class GaitRehabApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
           useMaterial3: true,
         ),
-        home: SplashScreen(
-          next: const AuthGate(),
+        home: const SplashScreen(
+          next: AuthGate(),
         ),
       ),
     );

@@ -14,6 +14,7 @@ class ReportGenerator {
   static Future<ReportModel> generate({
     required SessionModel current,
     SessionModel? previous,
+    Duration? timeout,
   }) async {
     final improvement = previous != null && previous.recoveryScore > 0
         ? ((current.recoveryScore - previous.recoveryScore) /
@@ -22,7 +23,8 @@ class ReportGenerator {
         : 0.0;
 
     try {
-      return await _generateWithGemini(current, previous, improvement);
+      final future = _generateWithGemini(current, previous, improvement);
+      return timeout == null ? await future : await future.timeout(timeout);
     } catch (e) {
       // Fallback so app never crashes during demo
       return _generateFallback(current, previous, improvement);
@@ -40,7 +42,7 @@ class ReportGenerator {
 
     // Retry logic for rate limits
     int retries = 0;
-    const maxRetries = 3;
+    const maxRetries = 2;
     while (retries < maxRetries) {
       final response = await http
           .post(

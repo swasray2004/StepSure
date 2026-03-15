@@ -44,6 +44,7 @@ class _RecordingScreenState extends State<RecordingScreen>
   int _sensorOrientation = 0;
 
   bool _isRecording = false;
+  bool _isSaving = false;
   int _sessionSeconds = 0;
   DateTime _sessionStart = DateTime.now();
 
@@ -104,16 +105,27 @@ class _RecordingScreenState extends State<RecordingScreen>
   }
 
   Future<void> _startCamera(CameraDescription desc) async {
-    final controller = CameraController(
-      desc,
-      ResolutionPreset.high,
-      enableAudio: false,
-    );
-
-    await controller.initialize();
+    CameraController? controller;
+    try {
+      controller = CameraController(
+        desc,
+        ResolutionPreset.high,
+        enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.yuv420,
+      );
+      await controller.initialize();
+    } catch (_) {
+      await controller?.dispose();
+      controller = CameraController(
+        desc,
+        ResolutionPreset.medium,
+        enableAudio: false,
+        imageFormatGroup: ImageFormatGroup.yuv420,
+      );
+      await controller.initialize();
+    }
 
     _cameraController = controller;
-
     _sensorOrientation = controller.description.sensorOrientation;
     _inputRotation = _rotationIntToInputImageRotation(_sensorOrientation);
 
@@ -274,10 +286,14 @@ class _RecordingScreenState extends State<RecordingScreen>
   }
 
   Future<void> _stopRecording() async {
+    if (_isSaving) return;
     _timer?.cancel();
     await _cameraController?.stopImageStream();
 
-    setState(() => _isRecording = false);
+    setState(() {
+      _isRecording = false;
+      _isSaving = true;
+    });
 
     final metrics = _gaitService.computeSessionMetrics();
 
@@ -304,25 +320,38 @@ class _RecordingScreenState extends State<RecordingScreen>
 
     final prev = await _supabase.getLastSession();
 
-    final report =
-        await ReportGenerator.generate(current: session, previous: prev);
+    try {
+      final report = await ReportGenerator.generate(
+        current: session,
+        previous: prev,
+        timeout: const Duration(seconds: 6),
+      );
 
-    await _supabase.saveReport(
-      sessionId: sessionId,
-      report: report.toJson(),
-    );
+      await _supabase.saveReport(
+        sessionId: sessionId,
+        report: report.toJson(),
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ResultsScreen(
-          session: session.copyWith(id: sessionId).toMap(),
-          report: report.toJson(),
+      setState(() => _isSaving = false);
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ResultsScreen(
+            session: session.copyWith(id: sessionId).toMap(),
+            report: report.toJson(),
+          ),
         ),
-      ),
-    );
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to generate report. Try again.')),
+      );
+    }
   }
 
   // ───────────────── Dispose ─────────────────
@@ -344,14 +373,32 @@ class _RecordingScreenState extends State<RecordingScreen>
   Widget build(BuildContext context) {
     if (_cameraError != null) {
       return Scaffold(
-        body: Center(child: Text(_cameraError!)),
+        backgroundColor: Colors.black,
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.videocam_off_rounded,
+                  color: Colors.red, size: 48),
+              const SizedBox(height: 16),
+              Text(
+                _cameraError!,
+                style: const TextStyle(color: Colors.white70),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
       );
     }
 
     if (_cameraController == null ||
         !_cameraController!.value.isInitialized) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        backgroundColor: Colors.black,
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF00E5CC)),
+        ),
       );
     }
 
@@ -371,7 +418,6 @@ class _RecordingScreenState extends State<RecordingScreen>
               builder: (context, constraints) {
                 final screenSize =
                     Size(constraints.maxWidth, constraints.maxHeight);
-
                 return CustomPaint(
                   size: screenSize,
                   painter: SkeletonPainter(
@@ -383,6 +429,394 @@ class _RecordingScreenState extends State<RecordingScreen>
                 );
               },
             ),
+
+          // ── Top HUD ──────────────────────────────────────────────────
+          SafeArea(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: Row(
+                    children: [
+                      _GlassButton(
+                        onTap: () => Navigator.pop(context),
+                        child: const Icon(Icons.arrow_back_ios_new_rounded,
+                            color: Colors.white, size: 18),
+                      ),
+                      const SizedBox(width: 10),
+                      _HudChip(
+                        icon: Icons.timer_outlined,
+                        label: _formatTime(_sessionSeconds),
+                        color: Colors.white,
+                      ),
+                      const Spacer(),
+                      _LiveChip(isLive: _isRecording),
+                      const SizedBox(width: 10),
+                      if (_cameras != null && _cameras!.length > 1)
+                        _GlassButton(
+                          onTap: _switchCamera,
+                          child: Icon(
+                            isFront
+                                ? Icons.camera_rear_rounded
+                                : Icons.camera_front_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (_latestFeedback != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: SlideTransition(
+                      position: _feedbackSlide,
+                      child: FadeTransition(
+                        opacity: _feedbackFade,
+                        child: _FeedbackBubble(message: _latestFeedback!),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          // ── Record / Stop button ─────────────────────────────────────
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedOpacity(
+                      opacity: _isRecording ? 0.0 : 1.0,
+                      duration: const Duration(milliseconds: 300),
+                      child: const Padding(
+                        padding: EdgeInsets.only(bottom: 16),
+                        child: Text(
+                          'Stand 2–3m away, full body visible',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: _isSaving
+                          ? null
+                          : (_isRecording ? _stopRecording : _startRecording),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 84,
+                            height: 84,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: _isRecording
+                                    ? Colors.red.withOpacity(0.7)
+                                    : Colors.white.withOpacity(0.7),
+                                width: 3,
+                              ),
+                            ),
+                          ),
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: _isRecording ? 34 : 66,
+                            height: _isRecording ? 34 : 66,
+                            decoration: BoxDecoration(
+                              color: _isRecording ? Colors.red : Colors.white,
+                              borderRadius:
+                                  BorderRadius.circular(_isRecording ? 8 : 33),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      _isSaving
+                          ? 'Generating report...'
+                          : (_isRecording ? 'Tap to stop' : 'Tap to record'),
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.6),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          if (_isSaving)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withOpacity(0.35),
+                child: const Center(
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF00E5CC),
+                      strokeWidth: 3,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+          if (kDebugMode && _errorLogs.isNotEmpty)
+            Positioned(
+              bottom: 160,
+              left: 16,
+              right: 16,
+              child: Container(
+                constraints: const BoxConstraints(maxHeight: 100),
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.red.withOpacity(0.5)),
+                ),
+                child: ListView.builder(
+                  itemCount: _errorLogs.length,
+                  itemBuilder: (_, i) => Text(
+                    _errorLogs[i],
+                    style: const TextStyle(color: Colors.white60, fontSize: 10),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _formatTime(int seconds) {
+    final m = (seconds ~/ 60).toString().padLeft(2, '0');
+    final s = (seconds % 60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+}
+
+// ─── HUD Widgets ──────────────────────────────────────────────────────────────
+
+class _HudChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _HudChip(
+      {required this.icon, required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.50),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.15)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 14),
+          const SizedBox(width: 6),
+          Text(label,
+              style: TextStyle(
+                  color: color, fontWeight: FontWeight.w700, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+}
+
+class _LiveChip extends StatefulWidget {
+  final bool isLive;
+  const _LiveChip({required this.isLive});
+
+  @override
+  State<_LiveChip> createState() => _LiveChipState();
+}
+
+class _LiveChipState extends State<_LiveChip>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 900))
+      ..repeat(reverse: true);
+    _pulse = Tween(begin: 0.6, end: 1.0).animate(_ctrl);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: widget.isLive
+            ? Colors.red.withOpacity(0.80)
+            : Colors.black.withOpacity(0.50),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: widget.isLive
+              ? Colors.red.withOpacity(0.5)
+              : Colors.white.withOpacity(0.15),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (widget.isLive)
+            AnimatedBuilder(
+              animation: _pulse,
+              builder: (_, __) => Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(_pulse.value),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            )
+          else
+            const Icon(Icons.fiber_manual_record_rounded,
+                color: Colors.white54, size: 8),
+          const SizedBox(width: 6),
+          Text(
+            widget.isLive ? 'LIVE' : 'READY',
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GlassButton extends StatelessWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const _GlassButton({required this.child, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.45),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withOpacity(0.15)),
+        ),
+        child: Center(child: child),
+      ),
+    );
+  }
+}
+
+class _FeedbackBubble extends StatelessWidget {
+  final String message;
+  const _FeedbackBubble({required this.message});
+
+  IconData get _icon {
+    final lower = message.toLowerCase();
+    if (lower.contains('great') ||
+        lower.contains('good') ||
+        lower.contains('keep')) {
+      return Icons.thumb_up_rounded;
+    }
+    if (lower.contains('faster') || lower.contains('cadence')) {
+      return Icons.speed_rounded;
+    }
+    if (lower.contains('symmetr')) return Icons.balance_rounded;
+    if (lower.contains('stride')) return Icons.straighten_rounded;
+    if (lower.contains('posture') || lower.contains('upright')) {
+      return Icons.accessibility_new_rounded;
+    }
+    return Icons.tips_and_updates_rounded;
+  }
+
+  Color get _color {
+    final lower = message.toLowerCase();
+    if (lower.contains('great') ||
+        lower.contains('good') ||
+        lower.contains('keep')) {
+      return const Color(0xFF00C9AA);
+    }
+    if (lower.contains('try') ||
+        lower.contains('faster') ||
+        lower.contains('improve')) {
+      return const Color(0xFFFFD166);
+    }
+    return const Color(0xFF64DFDF);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _color;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.62),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withOpacity(0.50), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.20),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: Icon(_icon, color: color, size: 15),
+          ),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                height: 1.3,
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -4,9 +4,7 @@
 
 <br/>
 
-```
-  StepSure
-```
+# StepSure
 
 **AI-Powered Smartphone Gait Analysis for Stroke Rehabilitation**
 

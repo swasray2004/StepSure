@@ -60,55 +60,131 @@ class _BottomNav extends StatefulWidget {
 class _BottomNavState extends State<_BottomNav> with TickerProviderStateMixin {
   late AnimationController _fabController;
   late Animation<double> _fabScale;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseScale;
+  late Animation<double> _pulseOpacity;
+
+  // Sliding indicator position
+  late AnimationController _indicatorController;
+  late Animation<double> _indicatorPosition;
+  double _prevPosition = 0.0;
+  double _targetPosition = 0.0;
+
+  static const _activeColor = Color(0xFF0A7EA4);
+  static const _inactiveColor = Color(0xFFB8C5D0);
+
+  // Nav item x-positions (set after layout)
+  final List<GlobalKey> _navKeys = List.generate(4, (_) => GlobalKey());
 
   @override
   void initState() {
     super.initState();
+
     _fabController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 180),
     );
-    _fabScale = Tween<double>(begin: 1.0, end: 0.92).animate(
+    _fabScale = Tween<double>(begin: 1.0, end: 0.88).animate(
       CurvedAnimation(parent: _fabController, curve: Curves.easeInOut),
+    );
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2400),
+    )..repeat();
+    _pulseScale = Tween<double>(begin: 1.0, end: 1.6).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    _pulseOpacity = Tween<double>(begin: 0.55, end: 0.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _indicatorController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+    _indicatorPosition = Tween<double>(begin: 0.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _indicatorController,
+        curve: const ElasticOutCurve(0.85),
+      ),
     );
   }
 
   @override
   void dispose() {
     _fabController.dispose();
+    _pulseController.dispose();
+    _indicatorController.dispose();
     super.dispose();
   }
 
   void _onFabTap() async {
     await _fabController.forward();
     await _fabController.reverse();
-    if (mounted) {
-      var exercises = ExerciseLibrary.all
-          .where((e) => e.difficulty == ExerciseDifficulty.beginner)
-          .toList();
-      if (exercises.isEmpty) {
-        exercises = ExerciseLibrary.all.take(4).toList();
-      } else {
-        exercises = exercises.take(4).toList();
-      }
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ExerciseModeScreen(
-            exercises: exercises,
-            sessionTitle: 'Beginner Rehab Session',
-          ),
+    if (!mounted) return;
+    final exercises = ExerciseLibrary.all
+        .where((e) => e.difficulty == ExerciseDifficulty.beginner)
+        .take(4)
+        .toList();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ExerciseModeScreen(
+          exercises: exercises.isEmpty
+              ? ExerciseLibrary.all.take(4).toList()
+              : exercises,
+          sessionTitle: 'Beginner Rehab Session',
+        ),
+      ),
+    );
+  }
+
+  void _animateIndicatorTo(int newIndex) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final key = _navKeys[newIndex];
+      final ctx = key.currentContext;
+      if (ctx == null) return;
+      final box = ctx.findRenderObject() as RenderBox;
+      final pos = box.localToGlobal(Offset.zero);
+      final center = pos.dx + box.size.width / 2 - 35;
+
+      _prevPosition = _indicatorPosition.value;
+      _targetPosition = center;
+      _indicatorPosition =
+          Tween<double>(begin: _prevPosition, end: _targetPosition).animate(
+        CurvedAnimation(
+          parent: _indicatorController,
+          curve: const ElasticOutCurve(0.85),
         ),
       );
+      _indicatorController
+        ..reset()
+        ..forward();
+    });
+  }
+
+  @override
+  void didUpdateWidget(_BottomNav old) {
+    super.didUpdateWidget(old);
+    if (old.currentIndex != widget.currentIndex) {
+      _animateIndicatorTo(widget.currentIndex);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_indicatorController.isDismissed) {
+        _animateIndicatorTo(widget.currentIndex);
+      }
+    });
+
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.bottomCenter,
       children: [
+        // ── Nav container ──────────────────────────────────────────
         Container(
           height: 86,
           decoration: BoxDecoration(
@@ -116,66 +192,143 @@ class _BottomNavState extends State<_BottomNav> with TickerProviderStateMixin {
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.08),
-                blurRadius: 24,
-                offset: const Offset(0, -4),
+                blurRadius: 28,
+                offset: const Offset(0, -6),
               ),
             ],
           ),
           child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10, left: 15, right: 15),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _navItem(0, Icons.home_outlined, Icons.home_rounded, 'Home'),
-                  _navItem(
-                      1,
-                      Icons.show_chart_outlined,
-                      Icons.show_chart_rounded,
-                      'Progress'),
-                  const SizedBox(width: 72),
-                  _navItem(
-                      2,
-                      Icons.description_outlined,
-                      Icons.description_rounded,
-                      'Reports'),
-                  _navItem(
-                      3, Icons.person_outline, Icons.person_rounded, 'Profile'),
-                ],
-              ),
+            top: false,
+            child: Stack(
+              children: [
+                // ── Sliding top indicator ──────────────────────────
+                AnimatedBuilder(
+                  animation: _indicatorPosition,
+                  builder: (_, __) => Positioned(
+                    top: 0,
+                    left: _indicatorPosition.value,
+                    child: Container(
+                      width: 70,
+                      height: 3,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0A7EA4), Color(0xFF07B5A0)],
+                        ),
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(4),
+                          bottomRight: Radius.circular(4),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // ── Nav items row ──────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, left: 12, right: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _NavItem(
+                        key: _navKeys[0],
+                        isActive: widget.currentIndex == 0,
+                        icon: Icons.home_outlined,
+                        activeIcon: Icons.home_rounded,
+                        label: 'Home',
+                        onTap: () => widget.onTap(0),
+                      ),
+                      _NavItem(
+                        key: _navKeys[1],
+                        isActive: widget.currentIndex == 1,
+                        icon: Icons.show_chart_outlined,
+                        activeIcon: Icons.show_chart_rounded,
+                        label: 'Progress',
+                        onTap: () => widget.onTap(1),
+                      ),
+                      // FAB spacer
+                      const SizedBox(width: 72),
+                      _NavItem(
+                        key: _navKeys[2],
+                        isActive: widget.currentIndex == 2,
+                        icon: Icons.description_outlined,
+                        activeIcon: Icons.description_rounded,
+                        label: 'Reports',
+                        onTap: () => widget.onTap(2),
+                      ),
+                      _NavItem(
+                        key: _navKeys[3],
+                        isActive: widget.currentIndex == 3,
+                        icon: Icons.person_outline,
+                        activeIcon: Icons.person_rounded,
+                        label: 'Profile',
+                        onTap: () => widget.onTap(3),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
+
+        // ── FAB ────────────────────────────────────────────────────
         Positioned(
-          bottom: 50,
-          child: ScaleTransition(
-            scale: _fabScale,
-            child: GestureDetector(
-              onTap: _onFabTap,
-              child: Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0A7EA4), Color(0xFF07B5A0)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF0A7EA4).withOpacity(0.4),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
+          bottom: 28,
+          child: GestureDetector(
+            onTap: _onFabTap,
+            child: SizedBox(
+              width: 80,
+              height: 80,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Pulse ring
+                  AnimatedBuilder(
+                    animation: _pulseController,
+                    builder: (_, __) => Opacity(
+                      opacity: _pulseOpacity.value,
+                      child: Transform.scale(
+                        scale: _pulseScale.value,
+                        child: Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF0A7EA4).withOpacity(0.22),
+                          ),
+                        ),
+                      ),
                     ),
-                  ],
-                ),
-                child: Image.asset(
-                  'assets/icons/heart_float.png',
-                  width: 32,
-                  height: 32,
-                  color: Colors.white,
-                ),
+                  ),
+                  // FAB button
+                  ScaleTransition(
+                    scale: _fabScale,
+                    child: Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0A7EA4), Color(0xFF07B5A0)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0A7EA4).withOpacity(0.38),
+                            blurRadius: 20,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.directions_walk,
+                        color: Colors.white,
+                        size: 26,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -183,27 +336,21 @@ class _BottomNavState extends State<_BottomNav> with TickerProviderStateMixin {
       ],
     );
   }
-
-  Widget _navItem(int index, IconData inactive, IconData active, String label) {
-    final isActive = widget.currentIndex == index;
-    return _NavItem(
-      isActive: isActive,
-      icon: isActive ? active : inactive,
-      label: label,
-      onTap: () => widget.onTap(index),
-    );
-  }
 }
 
+// ─── Nav Item ────────────────────────────────────────────────────────────────
 class _NavItem extends StatefulWidget {
   final bool isActive;
   final IconData icon;
+  final IconData activeIcon;
   final String label;
   final VoidCallback onTap;
 
   const _NavItem({
+    super.key,
     required this.isActive,
     required this.icon,
+    required this.activeIcon,
     required this.label,
     required this.onTap,
   });
@@ -214,65 +361,83 @@ class _NavItem extends StatefulWidget {
 
 class _NavItemState extends State<_NavItem>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
+  late AnimationController _ctrl;
+  late Animation<double> _scale;
+
+  static const _activeColor = Color(0xFF0A7EA4);
+  static const _inactiveColor = Color(0xFFB8C5D0);
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _ctrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 150),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.88).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    _scale = Tween<double>(begin: 1.0, end: 0.88).animate(
+      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
     );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _ctrl.dispose();
     super.dispose();
   }
 
   Future<void> _onTap() async {
-    await _controller.forward();
-    await _controller.reverse();
+    await _ctrl.forward();
+    await _ctrl.reverse();
     widget.onTap();
   }
 
   @override
   Widget build(BuildContext context) {
+    final color = widget.isActive ? _activeColor : _inactiveColor;
     return GestureDetector(
       onTap: _onTap,
       behavior: HitTestBehavior.opaque,
       child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: SizedBox(
-          height: 60,
+        scale: _scale,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+          decoration: BoxDecoration(
+            color: widget.isActive
+                ? const Color(0xFF0A7EA4).withOpacity(0.08)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                widget.icon,
-                color: widget.isActive
-                    ? const Color(0xFF0A7EA4)
-                    : const Color(0xFFB8C5D0),
-                size: 24,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                widget.label,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: widget.isActive
-                      ? const Color(0xFF0A7EA4)
-                      : const Color(0xFFB8C5D0),
-                  fontWeight:
-                      widget.isActive ? FontWeight.w600 : FontWeight.w500,
-                  height: 1.0,
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                switchInCurve: const ElasticOutCurve(0.9),
+                transitionBuilder: (child, anim) => ScaleTransition(
+                  scale: anim,
+                  child: child,
                 ),
+                child: Icon(
+                  widget.isActive ? widget.activeIcon : widget.icon,
+                  key: ValueKey(widget.isActive),
+                  color: color,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(height: 1),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: TextStyle(
+                  fontSize: 8,
+                  fontWeight:
+                      widget.isActive ? FontWeight.w700 : FontWeight.w500,
+                  color: color,
+                  height: 0.8,
+                ),
+                child: Text(widget.label,
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
               ),
             ],
           ),
@@ -1173,11 +1338,14 @@ class _StatsGrid extends StatelessWidget {
               child: _StatTile(
                 icon: Icons.speed_rounded,
                 label: 'Cadence',
-                value: cadence != null ? cadence!.toStringAsFixed(0) : '—',
+                value: cadence != null && cadence! > 0
+                    ? cadence!.toStringAsFixed(0)
+                    : '—',
                 unit: 'spm',
                 color: const Color(0xFF0A7EA4),
-                progress:
-                    cadence != null ? (cadence! / 200).clamp(0.0, 1.0) : 0,
+                progress: cadence != null && cadence! > 0
+                    ? (cadence! / 200).clamp(0.0, 1.0)
+                    : 0,
               ),
             ),
             const SizedBox(width: 12),
@@ -1185,11 +1353,14 @@ class _StatsGrid extends StatelessWidget {
               child: _StatTile(
                 icon: Icons.balance_rounded,
                 label: 'Symmetry',
-                value: symmetry != null ? symmetry!.toStringAsFixed(0) : '—',
+                value: symmetry != null && symmetry! > 0
+                    ? symmetry!.toStringAsFixed(0)
+                    : '—',
                 unit: '%',
                 color: const Color(0xFF00A890),
-                progress:
-                    symmetry != null ? (symmetry! / 100).clamp(0.0, 1.0) : 0,
+                progress: symmetry != null && symmetry! > 0
+                    ? (symmetry! / 100).clamp(0.0, 1.0)
+                    : 0,
               ),
             ),
           ],
@@ -1201,10 +1372,14 @@ class _StatsGrid extends StatelessWidget {
               child: _StatTile(
                 icon: Icons.straighten_rounded,
                 label: 'Stride',
-                value: stride != null ? stride!.toStringAsFixed(2) : '—',
+                value: stride != null && stride! > 0
+                    ? stride!.toStringAsFixed(2)
+                    : '—',
                 unit: 'm',
                 color: const Color(0xFF6C63FF),
-                progress: stride != null ? (stride! / 2.0).clamp(0.0, 1.0) : 0,
+                progress: stride != null && stride! > 0
+                    ? (stride! / 2.0).clamp(0.0, 1.0)
+                    : 0,
               ),
             ),
             const SizedBox(width: 12),

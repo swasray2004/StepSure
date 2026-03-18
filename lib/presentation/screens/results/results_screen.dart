@@ -735,28 +735,28 @@ class _MetricsGrid extends StatelessWidget {
       (
         Icons.balance_rounded,
         'Symmetry',
-        symmetry.toStringAsFixed(0),
+        symmetry > 0 ? symmetry.toStringAsFixed(0) : '—',
         '%',
         const Color(0xFF0A7EA4)
       ),
       (
         Icons.speed_rounded,
         'Cadence',
-        cadence.toStringAsFixed(0),
+        cadence > 0 ? cadence.toStringAsFixed(0) : '—',
         'spm',
         const Color(0xFF6C63FF)
       ),
       (
         Icons.timeline_rounded,
         'Consistency',
-        consistency.toStringAsFixed(0),
+        consistency > 0 ? consistency.toStringAsFixed(0) : '—',
         '%',
         const Color(0xFF00C9AA)
       ),
       (
         Icons.straighten_rounded,
         'Stride',
-        strideLen.toStringAsFixed(2),
+        strideLen > 0 ? strideLen.toStringAsFixed(2) : '—',
         'm',
         const Color(0xFFFFD166)
       ),

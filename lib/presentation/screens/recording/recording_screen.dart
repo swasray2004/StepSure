@@ -202,6 +202,7 @@ class _RecordingScreenState extends State<RecordingScreen>
     _sessionSeconds = 0;
 
     _errorLogs.clear();
+    _gaitService.startSession();
 
     setState(() => _isRecording = true);
 
@@ -211,8 +212,7 @@ class _RecordingScreenState extends State<RecordingScreen>
       if (!_isRecording) return;
 
       setState(() {
-        _sessionSeconds =
-            DateTime.now().difference(_sessionStart).inSeconds;
+        _sessionSeconds = DateTime.now().difference(_sessionStart).inSeconds;
       });
     });
 
@@ -392,8 +392,7 @@ class _RecordingScreenState extends State<RecordingScreen>
       );
     }
 
-    if (_cameraController == null ||
-        !_cameraController!.value.isInitialized) {
+    if (_cameraController == null || !_cameraController!.value.isInitialized) {
       return const Scaffold(
         backgroundColor: Colors.black,
         body: Center(
@@ -402,9 +401,8 @@ class _RecordingScreenState extends State<RecordingScreen>
       );
     }
 
-    final isFront =
-        _cameraController!.description.lensDirection ==
-            CameraLensDirection.front;
+    final isFront = _cameraController!.description.lensDirection ==
+        CameraLensDirection.front;
 
     return Scaffold(
       backgroundColor: Colors.black,

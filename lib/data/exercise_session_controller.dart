@@ -59,6 +59,8 @@ class SingleExerciseController extends ChangeNotifier {
   // ── Lifecycle ────────────────────────────────────────────────────────────────
   Future<void> start() async {
     await _voice.init();
+    // Ensure all listeners are attached before starting the timer
+    await Future.delayed(Duration.zero);
     _startWarmup();
   }
 
@@ -80,26 +82,42 @@ class SingleExerciseController extends ChangeNotifier {
   // ── Warmup phase (5-second countdown) ────────────────────────────────────────
   void _startWarmup() {
     _phase = ExercisePhase.warmup;
-    _secondsLeft = 5;
+    _secondsLeft = 5.0;
     _endTime = DateTime.now().add(const Duration(seconds: 5));
-    _voice.speak('Get ready for ${exercise.name}. Starting in 5 seconds.',
-        force: true);
     notifyListeners();
+
+    var lastSpokenSecond = 6;
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
+
+    // Fire-and-forget initial voice
+    Future(() => _voice.speak(
+        'Get ready for ${exercise.name}. Starting in 5 seconds.',
+        force: true));
+
+    _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (_paused || _disposed) return;
+
       final now = DateTime.now();
-      _secondsLeft = _endTime!.difference(now).inMilliseconds / 1000.0;
-      if (_secondsLeft <= 3 &&
-          _secondsLeft > 0 &&
-          _secondsLeft.ceil() == _secondsLeft) {
-        _voice.speak('${_secondsLeft.ceil()}', force: true);
-      }
-      if (_secondsLeft <= 0) {
-        _timer?.cancel();
-        _startActivePhase();
-      }
+      final diff = _endTime!.difference(now);
+      _secondsLeft = diff.inMilliseconds / 1000.0;
+
+      // Always notify on every tick
       notifyListeners();
+
+      if (_secondsLeft <= 0) {
+        timer.cancel();
+        Future(() => _startActivePhase());
+        return;
+      }
+
+      // Fire voice in background without blocking timer
+      final currentSecond = _secondsLeft.ceil();
+      if (currentSecond < lastSpokenSecond &&
+          currentSecond >= 1 &&
+          currentSecond <= 3) {
+        lastSpokenSecond = currentSecond;
+        Future(() => _voice.speak('$currentSecond', force: true));
+      }
     });
   }
 
@@ -112,32 +130,49 @@ class SingleExerciseController extends ChangeNotifier {
       _secondsLeft = exercise.durationSeconds.toDouble();
       _endTime =
           DateTime.now().add(Duration(seconds: exercise.durationSeconds));
-      _voice.speak(exercise.voiceInstruction, force: true);
+      notifyListeners();
+      Future(() => _voice.speak(exercise.voiceInstruction, force: true));
+
+      var lastSpokenSecond = exercise.durationSeconds + 1;
+      var halfwaySpokeFlag = false;
+
       _timer?.cancel();
-      _timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
+      _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
         if (_paused || _disposed) return;
+
         final now = DateTime.now();
-        _secondsLeft = _endTime!.difference(now).inMilliseconds / 1000.0;
-        // Speak coaching cue at halfway
-        if (_secondsLeft.ceil() == (exercise.durationSeconds ~/ 2)) {
-          _voice.speak(exercise.voiceInstruction);
-        }
-        if (_secondsLeft <= 3 &&
-            _secondsLeft > 0 &&
-            _secondsLeft.ceil() == _secondsLeft) {
-          _voice.speak('${_secondsLeft.ceil()}', force: true);
-        }
-        if (_secondsLeft <= 0) {
-          _timer?.cancel();
-          _onSetComplete();
-        }
+        final diff = _endTime!.difference(now);
+        _secondsLeft = diff.inMilliseconds / 1000.0;
+
+        // Always notify on every tick
         notifyListeners();
+
+        if (_secondsLeft <= 0) {
+          timer.cancel();
+          Future(() => _onSetComplete());
+          return;
+        }
+
+        // Fire voice in background without blocking
+        final halfwayPoint = exercise.durationSeconds ~/ 2;
+        if (!halfwaySpokeFlag && _secondsLeft.ceil() <= halfwayPoint) {
+          halfwaySpokeFlag = true;
+          Future(() => _voice.speak(exercise.voiceInstruction));
+        }
+
+        final currentSecond = _secondsLeft.ceil();
+        if (currentSecond < lastSpokenSecond &&
+            currentSecond >= 1 &&
+            currentSecond <= 3) {
+          lastSpokenSecond = currentSecond;
+          Future(() => _voice.speak('$currentSecond', force: true));
+        }
       });
     } else {
       // Rep-based: announce set start
-      _voice.speak(
+      Future(() => _voice.speak(
           'Set $_currentSet of ${exercise.sets}. ${exercise.voiceInstruction}',
-          force: true);
+          force: true));
       notifyListeners();
       // Rep ticks are driven externally via [completeRep]
     }

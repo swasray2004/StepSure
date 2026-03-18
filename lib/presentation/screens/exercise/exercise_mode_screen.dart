@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:gait_rehab/data/exercise_session_controller.dart';
 import 'package:gait_rehab/domain/models/exercise_model.dart';
@@ -23,7 +24,9 @@ class _C {
 
   static List<BoxShadow> get glow => [
         BoxShadow(
-            color: teal.withValues(alpha: 0.35), blurRadius: 24, spreadRadius: 2),
+            color: teal.withValues(alpha: 0.35),
+            blurRadius: 24,
+            spreadRadius: 2),
       ];
 }
 
@@ -310,12 +313,20 @@ class _WarmupView extends StatelessWidget {
                     boxShadow: _C.glow,
                   ),
                 ),
-                Text('$countdown',
-                    style: const TextStyle(
-                        fontFamily: _C.font,
-                        color: _C.tealLt,
-                        fontSize: 72,
-                        fontWeight: FontWeight.w800)),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, anim) => ScaleTransition(
+                    scale: anim,
+                    child: child,
+                  ),
+                  child: Text('$countdown',
+                      key: ValueKey(countdown),
+                      style: const TextStyle(
+                          fontFamily: _C.font,
+                          color: _C.tealLt,
+                          fontSize: 72,
+                          fontWeight: FontWeight.w800)),
+                ),
               ],
             ),
           ),
@@ -570,12 +581,14 @@ class _RepCounter extends StatelessWidget {
                   width: i < current ? 14 : 10,
                   height: i < current ? 14 : 10,
                   decoration: BoxDecoration(
-                    color: i < current ? _C.teal : _C.teal.withValues(alpha: 0.15),
+                    color:
+                        i < current ? _C.teal : _C.teal.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                     boxShadow: i < current
                         ? [
                             BoxShadow(
-                                color: _C.teal.withValues(alpha: 0.5), blurRadius: 6)
+                                color: _C.teal.withValues(alpha: 0.5),
+                                blurRadius: 6)
                           ]
                         : null,
                   ),

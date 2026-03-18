@@ -46,10 +46,14 @@ class ScoreCalculator {
   static String computeFallRisk(GaitMetrics metrics) {
     int riskScore = 0;
 
-    final strideVariability = _computeVariability(metrics.strideIntervals);
-    if (strideVariability > 25)
-      riskScore += 2;
-    else if (strideVariability > 15) riskScore += 1;
+    // Only use stride variability if cadence is realistic (>20 spm)
+    // Otherwise, low cadence produces unreliable variability measurements
+    if (metrics.cadence > 20) {
+      final strideVariability = _computeVariability(metrics.strideIntervals);
+      if (strideVariability > 25)
+        riskScore += 2;
+      else if (strideVariability > 15) riskScore += 1;
+    }
 
     if (metrics.symmetry < 40)
       riskScore += 2;
